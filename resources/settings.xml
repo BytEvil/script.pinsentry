@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+	<category label="32002">
+		<setting id="pinValue" type="text" visible="false" option="hidden" label="Pin Value" default="" />
+		<setting id="pinValueSet" type="bool" visible="false" option="hidden" label="Pin Value Set" default="false" />
+		<setting id="pinWarning" enable="false" visible="eq(-1,false)" type="text" label="32008" default="" />
+
+		<setting id="pinLength" label="32006" type="slider" default="4" range="1,1,10" option="int" />
+		<setting id="invalidPinNotificationType" label="32009" type="enum" lvalues="32010|32011|32012" default="0" />
+
+    	<setting label="32005" type="lsep"/>
+		<setting label="32007" type="action" option="close" action="RunScript($CWD/setpin.py)"/>
+		<setting label="32113" type="action" action="RunScript($CWD/cleanup.py)"/>
+
+    	<setting label="32003" type="lsep"/>
+		<setting id="logEnabled" type="bool" label="32004" default="false"/>
+	</category>
+</settings>
