@@ -188,7 +188,7 @@ class PinSentryDB():
         conn = self.getConnection()
         c = conn.cursor()
         # Select any existing data from the database
-        cmd = 'SELECT * FROM TvShows' % tableName
+        cmd = 'SELECT * FROM %s' % tableName
         c.execute(cmd)
         rows = c.fetchall()
 

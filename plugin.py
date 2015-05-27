@@ -149,6 +149,8 @@ class MenuNavigator():
         securityDetails = {}
         if type == MenuNavigator.TVSHOWS:
             securityDetails = pinDB.getAllTvShowsSecurity()
+        elif type == MenuNavigator.MOVIES:
+            securityDetails = pinDB.getAllMoviesSecurity()
 
         for videoItem in videoItems:
             # Default security to 0 (Not Set)
