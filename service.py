@@ -23,7 +23,7 @@ from database import PinSentryDB
 
 
 # Feature Options:
-# Time Span for when a pin is required
+# Prevent the need to restart after a settings change
 # Different Pins for different priorities (one a subset of the next)
 # Setting for a Group/Movie Set
 # Settings for given Video Plugins
@@ -49,7 +49,7 @@ class PinSentryPlayer(xbmc.Player):
             return
 
         # Check if the Pin is set, as no point prompting if it is not
-        if not Settings.isPinSet():
+        if (not Settings.isPinSet()) or (not Settings.isPinActive()):
             return
 
         # Get the information for what is currently playing

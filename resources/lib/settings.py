@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import hashlib
+import time
 import xbmc
 import xbmcaddon
 
@@ -78,3 +79,32 @@ class Settings():
     @staticmethod
     def getInvalidPinNotificationType():
         return int(float(__addon__.getSetting('invalidPinNotificationType')))
+
+    @staticmethod
+    def isPinActive():
+        # Check if the time restriction is enabled
+        if __addon__.getSetting("timeRestrictionEnabled") != 'true':
+            return True
+
+        # Get the current time
+        localTime = time.localtime()
+        currentTime = (localTime.tm_hour * 60) + localTime.tm_min
+
+        # Get the start time
+        startTimeStr = __addon__.getSetting("startTime")
+        startTimeSplit = startTimeStr.split(':')
+        startTime = (int(startTimeSplit[0]) * 60) + int(startTimeSplit[1])
+        if startTime > currentTime:
+            log("Pin not active until %s (%d) currently %d" % (startTimeStr, startTime, currentTime))
+            return False
+
+        # Now check the end time
+        endTimeStr = __addon__.getSetting("endTime")
+        endTimeSplit = endTimeStr.split(':')
+        endTime = (int(endTimeSplit[0]) * 60) + int(endTimeSplit[1])
+        if endTime < currentTime:
+            log("Pin not active after %s (%d) currently %d" % (endTimeStr, endTime, currentTime))
+            return False
+
+        log("Pin active between %s (%d) and %s (%d) currently %d" % (startTimeStr, startTime, endTimeStr, endTime, currentTime))
+        return True

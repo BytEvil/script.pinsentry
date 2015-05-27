@@ -29,7 +29,7 @@ msgid "Pin Sentry"
 msgstr ""
 
 msgctxt "#32002"
-msgid ""
+msgid "Setup"
 msgstr ""
 
 msgctxt "#32003"
@@ -80,7 +80,23 @@ msgctxt "#32114"
 msgid "Set Permissions"
 msgstr ""
 
-#empty strings from id 32015 to 32100
+msgctxt "#32115"
+msgid "Advanced"
+msgstr ""
+
+msgctxt "#32116"
+msgid "Only Enforce Pin Between Set Times"
+msgstr ""
+
+msgctxt "#32117"
+msgid "Start Time"
+msgstr ""
+
+msgctxt "#32118"
+msgid "End Time"
+msgstr ""
+
+#empty strings from id 32019 to 32100
 
 msgctxt "#32101"
 msgid "Backspace"

@@ -1,2 +1,5 @@
+Added since 0.0.1
+- Allow pin to only be active during a particular time of day
+
 v1.0.0
 - Initial Version
