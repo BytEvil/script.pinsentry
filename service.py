@@ -25,10 +25,9 @@ from database import PinSentryDB
 # Feature Options:
 # Time Span for when a pin is required
 # Different Pins for different priorities (one a subset of the next)
-# Setting for each Video
-# Setting for each TvShow
 # Setting for a Group/Movie Set
-# Settings for given Plugins
+# Settings for given Video Plugins
+# Option to have the pin requested during navigation (i.e. selecting a TV Show)
 # Restrictions based on certificate/classification
 # Remember the pin after it has been entered once (Forget after screensaver starts)
 # Option to have different passwords without the numbers (Remote with no numbers?)
@@ -56,25 +55,41 @@ class PinSentryPlayer(xbmc.Player):
         # Get the information for what is currently playing
         # http://kodi.wiki/view/InfoLabels#Video_player
         tvshowtitle = xbmc.getInfoLabel("VideoPlayer.TVShowTitle")
-        dbid = xbmc.getInfoLabel("ListItem.DBID")
-        cert = xbmc.getInfoLabel("VideoPlayer.mpaa")
-        listmpaa = xbmc.getInfoLabel("ListItem.Mpaa")
+#         dbid = xbmc.getInfoLabel("ListItem.DBID")
+#         cert = xbmc.getInfoLabel("VideoPlayer.mpaa")
+#         listmpaa = xbmc.getInfoLabel("ListItem.Mpaa")
 
-        log("*** ROB ***: VideoPlayer.TVShowTitle: %s" % str(tvshowtitle))
-        log("*** ROB ***: ListItem.DBID: %s" % str(dbid))
-        log("*** ROB ***: VideoPlayer.mpaa: %s" % str(cert))
-        log("*** ROB ***: ListItem.Mpaa: %s" % str(listmpaa))
+#         log("*** ROB ***: ListItem.DBID: %s" % str(dbid))
+#         log("*** ROB ***: VideoPlayer.mpaa: %s" % str(cert))
+#         log("*** ROB ***: ListItem.Mpaa: %s" % str(listmpaa))
 
         # If it is a TvShow, then check to see if it is enabled for this one
         if tvshowtitle not in [None, ""]:
+            log("PinSentry: VideoPlayer.TVShowTitle: %s" % tvshowtitle)
             pinDB = PinSentryDB()
             securityLevel = pinDB.getTvShowSecurityLevel(tvshowtitle)
             if securityLevel < 1:
                 log("PinSentry: No security enabled for %s" % tvshowtitle)
                 return
+        else:
+            # Not a TvShow, so check for the Movie Title
+            title = xbmc.getInfoLabel("VideoPlayer.Title")
+            if title not in [None, ""]:
+                log("PinSentry: VideoPlayer.Title: %s" % title)
+                pinDB = PinSentryDB()
+                securityLevel = pinDB.getMovieSecurityLevel(title)
+                if securityLevel < 1:
+                    log("PinSentry: No security enabled for %s" % title)
+                    return
+            else:
+                # Not a TvShow or Movie - so allow the user to continue
+                # without entering a pin code
+                log("PinSentry: No security enabled, no title available")
+                return
 
-        log("Pausing video to check if OK to play")
+        # Pause the video so that we can prompt for the Pin to be entered
         self.pause()
+        log("Pausing video to check if OK to play")
 
         numberpad = NumberPad.createNumberPad()
         numberpad.doModal()

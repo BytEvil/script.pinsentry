@@ -24,6 +24,7 @@ class PinSentryDB():
         # Make sure that the database exists if this is the first time
         self.createDatabase()
 
+    # Removes the database if it exists
     def cleanDatabase(self):
         msg = "%s%s" % (__addon__.getLocalizedString(32113), "?")
         isYes = xbmcgui.Dialog().yesno(__addon__.getLocalizedString(32001), msg)
@@ -35,6 +36,7 @@ class PinSentryDB():
             else:
                 log("PinSentryDB: No database exists: %s" % self.databasefile)
 
+    # Creates the database if the file does not already exist
     def createDatabase(self):
         # Make sure the database does not already exist
         if not xbmcvfs.exists(self.databasefile):
@@ -54,13 +56,12 @@ class PinSentryDB():
             # Run the statement passing in an array with one value
             c.execute("INSERT INTO version VALUES (?)", (versionNum,))
 
-            # Create a table that will be used to store each TvShow and its access level
+            # Create a table that will be used to store each Video and its access level
             # The "id" will be auto-generated as the primary key
             # Note: Index will automatically be created for "unique" values, so no
             # need to manually create them
             c.execute('''CREATE TABLE TvShows (id integer primary key, name text unique, level integer)''')
             c.execute('''CREATE TABLE Movies (id integer primary key, name text unique, level integer)''')
-            c.execute('''CREATE TABLE MusicVideo (id integer primary key, name text unique, level integer)''')
 
             # Save (commit) the changes
             conn.commit()
@@ -83,25 +84,57 @@ class PinSentryDB():
         conn.text_factory = str
         return conn
 
+    # Set the security value for a given TvShow
     def setTvShowSecurityLevel(self, showName, level=1):
-        return self.insertOrUpdateTvShow(showName, level)
+        ret = -1
+        if level > 0:
+            ret = self._insertOrUpdate("TvShows", showName, level)
+        else:
+            self._deleteSecurityDetails("TvShows", showName)
+        return ret
+
+    # Set the security value for a given Movie
+    def setMovieSecurityLevel(self, movieName, level=1):
+        ret = -1
+        if level > 0:
+            ret = self._insertOrUpdate("Movies", movieName, level)
+        else:
+            self._deleteSecurityDetails("Movies", movieName)
+        return ret
 
     # Insert or replace an entry in the database
-    def insertOrUpdateTvShow(self, showName, level=1):
-        log("PinSentryDB: Adding TvShow %s at level %d" % (showName, level))
+    def _insertOrUpdate(self, tableName, name, level=1):
+        log("PinSentryDB: Adding %s %s at level %d" % (tableName, name, level))
 
         # Get a connection to the DB
         conn = self.getConnection()
         c = conn.cursor()
 
-        insertData = (showName, level)
-        c.execute('''INSERT OR REPLACE INTO TvShows(name, level) VALUES (?,?)''', insertData)
+        insertData = (name, level)
+        cmd = 'INSERT OR REPLACE INTO %s (name, level) VALUES (?,?)' % tableName
+        c.execute(cmd, insertData)
 
         rowId = c.lastrowid
         conn.commit()
         conn.close()
 
         return rowId
+
+    # Delete an entry from the database
+    def _deleteSecurityDetails(self, tableName, name):
+        log("PinSentryDB: delete %s for %s" % (tableName, name))
+
+        # Get a connection to the DB
+        conn = self.getConnection()
+        c = conn.cursor()
+        # Delete any existing data from the database
+        cmd = 'delete FROM %s where name = ?' % tableName
+        c.execute(cmd, (name,))
+        conn.commit()
+
+        log("PinSentryDB: delete for %s removed %d rows" % (name, conn.total_changes))
+
+        conn.close()
 
     # Get the security value for a given TvShow
     def getTvShowSecurityLevel(self, showName):
@@ -110,10 +143,6 @@ class PinSentryDB():
     # Get the security value for a given Movie
     def getMovieSecurityLevel(self, movieName):
         return self._getSecurityLevel("Movies", movieName)
-
-    # Get the security value for a given Music Video
-    def getMusicVideoSecurityLevel(self, musicVideoName):
-        return self._getSecurityLevel("MusicVideo", musicVideoName)
 
     # Select the security entry from the database
     def _getSecurityLevel(self, tableName, name):
@@ -144,14 +173,23 @@ class PinSentryDB():
         return securityLevel
 
     # Select all TvShow entries from the database
-    def selectTvShows(self):
-        log("PinSentryDB: select all TvShow")
+    def getAllTvShowsSecurity(self):
+        return self._getAllSecurityDetails("TvShows")
+
+    # Select all Movies entries from the database
+    def getAllMoviesSecurity(self):
+        return self._getAllSecurityDetails("Movies")
+
+    # Select all security details from a given table in the database
+    def _getAllSecurityDetails(self, tableName):
+        log("PinSentryDB: select all %s" % tableName)
 
         # Get a connection to the DB
         conn = self.getConnection()
         c = conn.cursor()
         # Select any existing data from the database
-        c.execute('SELECT * FROM TvShows')
+        cmd = 'SELECT * FROM TvShows' % tableName
+        c.execute(cmd)
         rows = c.fetchall()
 
         resultDict = {}
@@ -171,18 +209,3 @@ class PinSentryDB():
 
         conn.close()
         return resultDict
-
-    # Delete an entry from the database
-    def deleteTvShow(self, showName):
-        log("PinSentryDB: delete TvShow for %s" % showName)
-
-        # Get a connection to the DB
-        conn = self.getConnection()
-        c = conn.cursor()
-        # Delete any existing data from the database
-        c.execute('delete FROM TvShows where name = ?', (showName,))
-        conn.commit()
-
-        log("PinSentryDB: delete for %s removed %d rows" % (showName, conn.total_changes))
-
-        conn.close()

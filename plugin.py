@@ -38,7 +38,6 @@ from database import PinSentryDB
 class MenuNavigator():
     MOVIES = 'movies'
     TVSHOWS = 'tvshows'
-    MUSICVIDEOS = 'musicvideos'
 
     def __init__(self, base_url, addon_handle):
         self.base_url = base_url
@@ -64,13 +63,6 @@ class MenuNavigator():
         li.addContextMenuItems([], replaceItems=True)
         xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
 
-        # Music Videos
-        url = self._build_url({'mode': 'folder', 'foldername': MenuNavigator.MUSICVIDEOS})
-        li = xbmcgui.ListItem(__addon__.getLocalizedString(32203), iconImage=__icon__)
-        li.setProperty("Fanart_Image", __fanart__)
-        li.addContextMenuItems([], replaceItems=True)
-        xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
-
         xbmcplugin.endOfDirectory(self.addon_handle)
 
     # Show the list of videos in a given set
@@ -80,8 +72,6 @@ class MenuNavigator():
             self._setVideoList('GetTVShows', MenuNavigator.TVSHOWS, 'tvshowid')
         elif foldername == MenuNavigator.MOVIES:
             self._setVideoList('GetMovies', MenuNavigator.MOVIES, 'movieid')
-        elif foldername == MenuNavigator.MUSICVIDEOS:
-            self._setVideoList('GetMusicVideos', MenuNavigator.MUSICVIDEOS, 'musicvideoid')
 
     # Produce the list of videos and flag which ones with securoty details
     def _setVideoList(self, jsonGet, target, dbid):
@@ -158,7 +148,7 @@ class MenuNavigator():
 
         securityDetails = {}
         if type == MenuNavigator.TVSHOWS:
-            securityDetails = pinDB.selectTvShows()
+            securityDetails = pinDB.getAllTvShowsSecurity()
 
         for videoItem in videoItems:
             # Default security to 0 (Not Set)
@@ -176,16 +166,16 @@ class MenuNavigator():
     # Set the security value for a given video
     def setSecurity(self, type, title, level):
         log("Setting security for %s" % title)
-        pinDB = PinSentryDB()
-        if type == MenuNavigator.TVSHOWS:
-            if title not in [None, ""]:
-                if level > 0:
-                    pinDB.setTvShowSecurityLevel(title, level)
-                else:
-                    # If we are clearing security, then we remove it from the
-                    # Pin Sentry database, as the default is unset
-                    pinDB.deleteTvShow(title)
-        del pinDB
+        if title not in [None, ""]:
+            pinDB = PinSentryDB()
+            if type == MenuNavigator.TVSHOWS:
+                # Set the security level for this title, setting it to zero
+                # will result in the entry being removed from the database
+                # as the default for an item is unset
+                pinDB.setTvShowSecurityLevel(title, level)
+            elif type == MenuNavigator.MOVIES:
+                pinDB.setMovieSecurityLevel(title, level)
+            del pinDB
 
         # Now reload the screen to reflect the change
         xbmc.executebuiltin("Container.Refresh")
