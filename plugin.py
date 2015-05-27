@@ -86,6 +86,8 @@ class MenuNavigator():
     # Produce the list of videos and flag which ones with securoty details
     def _setVideoList(self, jsonGet, target, dbid):
         videoItems = self._getVideos(jsonGet, target, dbid)
+        # Now add the security details to the video list
+        videoItems = self._addSecurityFlagToVideos(target, videoItems)
 
         for videoItem in videoItems:
             # Create the list-item for this video
@@ -106,7 +108,16 @@ class MenuNavigator():
             except:
                 log("setVideoList: Failed to encode filename %s" % filename)
 
-            url = self._build_url({'mode': 'setsecurity', 'type': target, 'title': title, 'dbid': videoItem['dbid'], 'filename': filename})
+            # Record what the new security level will be is selected
+            newSecurityLevel = 1
+            # Add a tick if security is set
+            if videoItem['securityLevel'] > 0:
+                li.setInfo('video', {'PlayCount': 1})
+                # Next time the item is selected, it will be disabled
+                newSecurityLevel = 0
+
+#            url = self._build_url({'mode': 'setsecurity', 'type': target, 'title': title, 'dbid': videoItem['dbid'], 'filename': filename})
+            url = self._build_url({'mode': 'setsecurity', 'level': newSecurityLevel, 'type': target, 'title': title})
             xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
 
         xbmcplugin.endOfDirectory(self.addon_handle)
@@ -136,12 +147,44 @@ class MenuNavigator():
                 Videolist.append(videoItem)
         return Videolist
 
-    def setSecurity(self, type, title, dbid, filename):
+    # Adds the current security details to the video items
+    def _addSecurityFlagToVideos(self, type, videoItems):
+        # Make sure we have some items to append the details to
+        if len(videoItems) < 1:
+            return videoItems
+
+        # Make the call to the DB to get all the specific security settings
+        pinDB = PinSentryDB()
+
+        securityDetails = {}
+        if type == MenuNavigator.TVSHOWS:
+            securityDetails = pinDB.selectTvShows()
+
+        for videoItem in videoItems:
+            # Default security to 0 (Not Set)
+            securityLevel = 0
+            if videoItem['title'] in securityDetails:
+                title = videoItem['title']
+                securityLevel = securityDetails[title]
+                log("%s has security level %d" % (title, securityLevel))
+
+            videoItem['securityLevel'] = securityLevel
+
+        del pinDB
+        return videoItems
+
+    # Set the security value for a given video
+    def setSecurity(self, type, title, level):
         log("Setting security for %s" % title)
         pinDB = PinSentryDB()
         if type == MenuNavigator.TVSHOWS:
             if title not in [None, ""]:
-                pinDB.insertOrUpdateTvShow(title)
+                if level > 0:
+                    pinDB.setTvShowSecurityLevel(title, level)
+                else:
+                    # If we are clearing security, then we remove it from the
+                    # Pin Sentry database, as the default is unset
+                    pinDB.deleteTvShow(title)
         del pinDB
 
         # Now reload the screen to reflect the change
@@ -189,21 +232,17 @@ if __name__ == '__main__':
         # Get the actual details of the selection
         type = args.get('type', None)
         title = args.get('title', None)
-        dbid = args.get('dbid', None)
-        filename = args.get('filename', None)
+        level = args.get('level', None)
 
         if (type is not None) and (len(type) > 0):
             log("PinSentryPlugin: Type to set security for %s" % type[0])
             secTitle = ""
             if (title is not None) and (len(title) > 0):
                 secTitle = title[0]
-            secDbid = ""
-            if (dbid is not None) and (len(dbid) > 0):
-                secDbid = dbid[0]
-            secFilename = ""
-            if (filename is not None) and (len(filename) > 0):
-                secFilename = filename[0]
+            secLevel = 0
+            if (level is not None) and (len(level) > 0):
+                secLevel = int(level[0])
 
             menuNav = MenuNavigator(base_url, addon_handle)
-            menuNav.setSecurity(type[0], secTitle, secDbid, secFilename)
+            menuNav.setSecurity(type[0], secTitle, secLevel)
             del menuNav

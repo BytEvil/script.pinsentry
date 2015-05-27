@@ -19,6 +19,7 @@ from settings import log
 from settings import Settings
 
 from numberpad import NumberPad
+from database import PinSentryDB
 
 
 # Feature Options:
@@ -63,6 +64,14 @@ class PinSentryPlayer(xbmc.Player):
         log("*** ROB ***: ListItem.DBID: %s" % str(dbid))
         log("*** ROB ***: VideoPlayer.mpaa: %s" % str(cert))
         log("*** ROB ***: ListItem.Mpaa: %s" % str(listmpaa))
+
+        # If it is a TvShow, then check to see if it is enabled for this one
+        if tvshowtitle not in [None, ""]:
+            pinDB = PinSentryDB()
+            securityLevel = pinDB.getTvShowSecurityLevel(tvshowtitle)
+            if securityLevel < 1:
+                log("PinSentry: No security enabled for %s" % tvshowtitle)
+                return
 
         log("Pausing video to check if OK to play")
         self.pause()
