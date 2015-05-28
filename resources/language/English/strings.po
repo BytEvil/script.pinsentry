@@ -96,7 +96,11 @@ msgctxt "#32118"
 msgid "End Time"
 msgstr ""
 
-#empty strings from id 32019 to 32100
+msgctxt "#32119"
+msgid "Remember Pin After First Use"
+msgstr ""
+
+#empty strings from id 32020 to 32100
 
 msgctxt "#32101"
 msgid "Backspace"

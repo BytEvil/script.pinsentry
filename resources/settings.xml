@@ -12,14 +12,15 @@
 		<setting label="32007" type="action" option="close" action="RunScript($CWD/setpin.py)"/>
 		<setting label="32114" type="action" option="close" action="RunAddon(script.pinsentry)"/>
 		<setting label="32113" type="action" action="RunScript($CWD/cleanup.py)"/>
-
-    	<setting label="32003" type="lsep"/>
-		<setting id="logEnabled" type="bool" label="32004" default="false"/>
 	</category>
 
 	<category label="32115">
+		<setting id="pinCachingEnabled" type="bool" label="32119" default="false" />
 		<setting id="timeRestrictionEnabled" type="bool" label="32116" default="false" />
 		<setting id="startTime" visible="eq(-1,true)" type="time" label="32117" default="06:00"/>
 		<setting id="endTime" visible="eq(-2,true)" type="time" label="32118" default="20:00"/>
+
+    	<setting label="32003" type="lsep"/>
+		<setting id="logEnabled" type="bool" label="32004" default="false"/>
 	</category>
 </settings>

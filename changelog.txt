@@ -1,6 +1,7 @@
 Added since 0.0.1
 - Allow pin to only be active during a particular time of day
 - Prevent the need to restart after settings change
+- Remember the pin after it has been entered once (Forget after screensaver starts)
 
 v1.0.0
 - Initial Version

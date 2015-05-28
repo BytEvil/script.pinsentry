@@ -114,3 +114,7 @@ class Settings():
 
         log("Pin active between %s (%d) and %s (%d) currently %d" % (startTimeStr, startTime, endTimeStr, endTime, currentTime))
         return True
+
+    @staticmethod
+    def isPinCachingEnabled():
+        return __addon__.getSetting("pinCachingEnabled") == 'true'

@@ -28,14 +28,41 @@ from database import PinSentryDB
 # Settings for given Video Plugins
 # Option to have the pin requested during navigation (i.e. selecting a TV Show)
 # Restrictions based on certificate/classification
-# Remember the pin after it has been entered once (Forget after screensaver starts)
 # Option to have different passwords without the numbers (Remote with no numbers?)
+# Support DVD Directory Structures
+
+# ClLass to store and manage the pin Cache
+class PinCache():
+    pinLevelCached = 0
+
+    @staticmethod
+    def clearPinCached():
+        log("PinCache: Clearing Cached pin that was at level %d" % PinCache.pinLevelCached)
+        PinCache.pinLevelCached = 0
+
+    @staticmethod
+    def setCachedPinLevel(level):
+        # Check if the pin cache is enabled, if it is not then the cache level will
+        # always remain at 0 (i.e. always need to enter the pin)
+        if Settings.isPinCachingEnabled():
+            if PinCache.pinLevelCached < level:
+                log("PinCache: Updating cached pin level to %d" % level)
+                PinCache.pinLevelCached = level
+
+    @staticmethod
+    def getCachedPinLevel():
+        return PinCache.pinLevelCached
+
 
 # Class to detect shen something in the system has changed
 class PinSentryMonitor(xbmc.Monitor):
     def onSettingsChanged(self):
         log("PinSentryMonitor: Notification of settings change received")
         Settings.reloadSettings()
+
+    def onScreensaverActivated(self):
+        log("PinSentryMonitor: Screensaver started, clearing cached pin")
+        PinCache.clearPinCached()
 
 
 # Our Monitor class so we can find out when a video file has been selected to play
@@ -44,6 +71,8 @@ class PinSentryPlayer(xbmc.Player):
         xbmc.Player.__init__(self)
 
     def onPlayBackStarted(self):
+        log("PinSentry: Notification that something started playing")
+
         # Only interested if it is playing videos, as they will not be TvTunes
         if not self.isPlayingVideo():
             return
@@ -60,14 +89,15 @@ class PinSentryPlayer(xbmc.Player):
         # Get the information for what is currently playing
         # http://kodi.wiki/view/InfoLabels#Video_player
         tvshowtitle = xbmc.getInfoLabel("VideoPlayer.TVShowTitle")
-#         dbid = xbmc.getInfoLabel("ListItem.DBID")
-#         cert = xbmc.getInfoLabel("VideoPlayer.mpaa")
-#         listmpaa = xbmc.getInfoLabel("ListItem.Mpaa")
+        dbid = xbmc.getInfoLabel("ListItem.DBID")
+        cert = xbmc.getInfoLabel("VideoPlayer.mpaa")
+        listmpaa = xbmc.getInfoLabel("ListItem.Mpaa")
 
-#         log("*** ROB ***: ListItem.DBID: %s" % str(dbid))
-#         log("*** ROB ***: VideoPlayer.mpaa: %s" % str(cert))
-#         log("*** ROB ***: ListItem.Mpaa: %s" % str(listmpaa))
+        log("*** ROB ***: ListItem.DBID: %s" % str(dbid))
+        log("*** ROB ***: VideoPlayer.mpaa: %s" % str(cert))
+        log("*** ROB ***: ListItem.Mpaa: %s" % str(listmpaa))
 
+        securityLevel = 0
         # If it is a TvShow, then check to see if it is enabled for this one
         if tvshowtitle not in [None, ""]:
             log("PinSentry: VideoPlayer.TVShowTitle: %s" % tvshowtitle)
@@ -92,6 +122,11 @@ class PinSentryPlayer(xbmc.Player):
                 log("PinSentry: No security enabled, no title available")
                 return
 
+        # Check if we have already cached the pin number and at which level
+        if PinCache.getCachedPinLevel() >= securityLevel:
+            log("PinSentry: Already cached pin at level %d, allowing access" % PinCache.getCachedPinLevel())
+            return
+
         # Pause the video so that we can prompt for the Pin to be entered
         self.pause()
         log("Pausing video to check if OK to play")
@@ -108,6 +143,9 @@ class PinSentryPlayer(xbmc.Player):
             log("OK To Continue")
             # Pausing again will start the video playing again
             self.pause()
+
+            # Check if we are allowed to cache the pin level
+            PinCache.setCachedPinLevel(securityLevel)
         else:
             log("Do not want to continue")
             self.stop()
