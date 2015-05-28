@@ -29,7 +29,6 @@ from database import PinSentryDB
 # Option to have the pin requested during navigation (i.e. selecting a TV Show)
 # Restrictions based on certificate/classification
 # Option to have different passwords without the numbers (Remote with no numbers?)
-# Support DVD Directory Structures
 
 # ClLass to store and manage the pin Cache
 class PinCache():
@@ -73,13 +72,13 @@ class PinSentryPlayer(xbmc.Player):
     def onPlayBackStarted(self):
         log("PinSentry: Notification that something started playing")
 
-        # Only interested if it is playing videos, as they will not be TvTunes
-        if not self.isPlayingVideo():
+        # Only interested if it is not playing music
+        if self.isPlayingAudio():
             return
 
         # Ignore screen saver videos
         if xbmcgui.Window(10000).getProperty("VideoScreensaverRunning"):
-            log("Detected VideoScreensaver playing")
+            log("PinSentry: Detected VideoScreensaver playing")
             return
 
         # Check if the Pin is set, as no point prompting if it is not
@@ -89,13 +88,13 @@ class PinSentryPlayer(xbmc.Player):
         # Get the information for what is currently playing
         # http://kodi.wiki/view/InfoLabels#Video_player
         tvshowtitle = xbmc.getInfoLabel("VideoPlayer.TVShowTitle")
-        dbid = xbmc.getInfoLabel("ListItem.DBID")
-        cert = xbmc.getInfoLabel("VideoPlayer.mpaa")
-        listmpaa = xbmc.getInfoLabel("ListItem.Mpaa")
+#         dbid = xbmc.getInfoLabel("ListItem.DBID")
+#         cert = xbmc.getInfoLabel("VideoPlayer.mpaa")
+#         listmpaa = xbmc.getInfoLabel("ListItem.Mpaa")
 
-        log("*** ROB ***: ListItem.DBID: %s" % str(dbid))
-        log("*** ROB ***: VideoPlayer.mpaa: %s" % str(cert))
-        log("*** ROB ***: ListItem.Mpaa: %s" % str(listmpaa))
+#         log("*** ROB ***: ListItem.DBID: %s" % str(dbid))
+#         log("*** ROB ***: VideoPlayer.mpaa: %s" % str(cert))
+#         log("*** ROB ***: ListItem.Mpaa: %s" % str(listmpaa))
 
         securityLevel = 0
         # If it is a TvShow, then check to see if it is enabled for this one
@@ -109,8 +108,13 @@ class PinSentryPlayer(xbmc.Player):
         else:
             # Not a TvShow, so check for the Movie Title
             title = xbmc.getInfoLabel("VideoPlayer.Title")
+
+            # If no title is found, check the ListItem rather then the Player
+            if title in [None, ""]:
+                title = xbmc.getInfoLabel("ListItem.Title")
+
             if title not in [None, ""]:
-                log("PinSentry: VideoPlayer.Title: %s" % title)
+                log("PinSentry: Title: %s" % title)
                 pinDB = PinSentryDB()
                 securityLevel = pinDB.getMovieSecurityLevel(title)
                 if securityLevel < 1:
@@ -127,9 +131,12 @@ class PinSentryPlayer(xbmc.Player):
             log("PinSentry: Already cached pin at level %d, allowing access" % PinCache.getCachedPinLevel())
             return
 
+        # Make sure the video starts before we pause it, this can be the case on a slow system
+        xbmc.sleep(1000)
+
         # Pause the video so that we can prompt for the Pin to be entered
         self.pause()
-        log("Pausing video to check if OK to play")
+        log("PinSentry: Pausing video to check if OK to play")
 
         numberpad = NumberPad.createNumberPad()
         numberpad.doModal()
@@ -140,14 +147,14 @@ class PinSentryPlayer(xbmc.Player):
 
         # Check to see if the pin entered is correct
         if Settings.isPinCorrect(enteredPin):
-            log("OK To Continue")
+            log("PinSentry: OK To Continue")
             # Pausing again will start the video playing again
             self.pause()
 
             # Check if we are allowed to cache the pin level
             PinCache.setCachedPinLevel(securityLevel)
         else:
-            log("Do not want to continue")
+            log("PinSentry: Do not want to continue")
             self.stop()
             # Invalid Key Notification: Dialog, Popup Notification, None
             notifType = Settings.getInvalidPinNotificationType()
