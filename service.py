@@ -23,7 +23,6 @@ from database import PinSentryDB
 
 
 # Feature Options:
-# Prevent the need to restart after a settings change
 # Different Pins for different priorities (one a subset of the next)
 # Setting for a Group/Movie Set
 # Settings for given Video Plugins
@@ -31,6 +30,12 @@ from database import PinSentryDB
 # Restrictions based on certificate/classification
 # Remember the pin after it has been entered once (Forget after screensaver starts)
 # Option to have different passwords without the numbers (Remote with no numbers?)
+
+# Class to detect shen something in the system has changed
+class PinSentryMonitor(xbmc.Monitor):
+    def onSettingsChanged(self):
+        log("PinSentryMonitor: Notification of settings change received")
+        Settings.reloadSettings()
 
 
 # Our Monitor class so we can find out when a video file has been selected to play
@@ -123,9 +128,11 @@ if __name__ == '__main__':
     log("Starting Pin Sentry Service")
 
     playerMonitor = PinSentryPlayer()
+    systemMonitor = PinSentryMonitor()
 
     while (not xbmc.abortRequested):
         xbmc.sleep(100)
 
     log("Stopping Pin Sentry Service")
     del playerMonitor
+    del systemMonitor

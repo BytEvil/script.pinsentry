@@ -43,6 +43,12 @@ class Settings():
     INVALID_PIN_NOTIFICATION_NONE = 2
 
     @staticmethod
+    def reloadSettings():
+        # Force the reload of the settings to pick up any new values
+        global __addon__
+        __addon__ = xbmcaddon.Addon(id='script.pinsentry')
+
+    @staticmethod
     def setPinValue(newPin):
         # Before setting the pin, encrypt it
         encryptedPin = Settings.encryptPin(newPin)

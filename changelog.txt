@@ -1,5 +1,6 @@
 Added since 0.0.1
 - Allow pin to only be active during a particular time of day
+- Prevent the need to restart after settings change
 
 v1.0.0
 - Initial Version
