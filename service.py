@@ -30,27 +30,62 @@ from database import PinSentryDB
 # Restrictions based on certificate/classification
 # Option to have different passwords without the numbers (Remote with no numbers?)
 
-# ClLass to store and manage the pin Cache
-class PinCache():
+# Class to handle core Pin Sentry behaviour
+class PinSentry():
     pinLevelCached = 0
 
     @staticmethod
     def clearPinCached():
-        log("PinCache: Clearing Cached pin that was at level %d" % PinCache.pinLevelCached)
-        PinCache.pinLevelCached = 0
+        log("PinSentry: Clearing Cached pin that was at level %d" % PinSentry.pinLevelCached)
+        PinSentry.pinLevelCached = 0
 
     @staticmethod
     def setCachedPinLevel(level):
         # Check if the pin cache is enabled, if it is not then the cache level will
         # always remain at 0 (i.e. always need to enter the pin)
         if Settings.isPinCachingEnabled():
-            if PinCache.pinLevelCached < level:
-                log("PinCache: Updating cached pin level to %d" % level)
-                PinCache.pinLevelCached = level
+            if PinSentry.pinLevelCached < level:
+                log("PinSentry: Updating cached pin level to %d" % level)
+                PinSentry.pinLevelCached = level
 
     @staticmethod
     def getCachedPinLevel():
-        return PinCache.pinLevelCached
+        return PinSentry.pinLevelCached
+
+    @staticmethod
+    def promptUserForPin():
+        userHasAccess = True
+
+        # Prompt the user to enter the pin
+        numberpad = NumberPad.createNumberPad()
+        numberpad.doModal()
+
+        # Get the code that the user entered
+        enteredPin = numberpad.getPin()
+        del numberpad
+
+        # Check to see if the pin entered is correct
+        if Settings.isPinCorrect(enteredPin):
+            log("PinSentry: Pin entered Correctly")
+            userHasAccess = True
+            # Check if we are allowed to cache the pin level
+            PinSentry.setCachedPinLevel(1)
+        else:
+            log("PinSentry: Incorrect Pin Value Entered")
+            userHasAccess = False
+
+        return userHasAccess
+
+    @staticmethod
+    def displayInvalidPinMessage():
+        # Invalid Key Notification: Dialog, Popup Notification, None
+        notifType = Settings.getInvalidPinNotificationType()
+        if notifType == Settings.INVALID_PIN_NOTIFICATION_POPUP:
+            cmd = 'XBMC.Notification("{0}", "{1}", 5, "{2}")'.format(__addon__.getLocalizedString(32001).encode('utf-8'), __addon__.getLocalizedString(32104).encode('utf-8'), __icon__)
+            xbmc.executebuiltin(cmd)
+        elif notifType == Settings.INVALID_PIN_NOTIFICATION_DIALOG:
+            xbmcgui.Dialog().ok(__addon__.getLocalizedString(32001).encode('utf-8'), __addon__.getLocalizedString(32104).encode('utf-8'))
+        # Remaining option is to not show any error
 
 
 # Class to detect shen something in the system has changed
@@ -61,7 +96,7 @@ class PinSentryMonitor(xbmc.Monitor):
 
     def onScreensaverActivated(self):
         log("PinSentryMonitor: Screensaver started, clearing cached pin")
-        PinCache.clearPinCached()
+        PinSentry.clearPinCached()
 
 
 # Our Monitor class so we can find out when a video file has been selected to play
@@ -70,7 +105,7 @@ class PinSentryPlayer(xbmc.Player):
         xbmc.Player.__init__(self)
 
     def onPlayBackStarted(self):
-        log("PinSentry: Notification that something started playing")
+        log("PinSentryPlayer: Notification that something started playing")
 
         # Only interested if it is not playing music
         if self.isPlayingAudio():
@@ -78,7 +113,7 @@ class PinSentryPlayer(xbmc.Player):
 
         # Ignore screen saver videos
         if xbmcgui.Window(10000).getProperty("VideoScreensaverRunning"):
-            log("PinSentry: Detected VideoScreensaver playing")
+            log("PinSentryPlayer: Detected VideoScreensaver playing")
             return
 
         # Check if the Pin is set, as no point prompting if it is not
@@ -88,6 +123,11 @@ class PinSentryPlayer(xbmc.Player):
         # Get the information for what is currently playing
         # http://kodi.wiki/view/InfoLabels#Video_player
         tvshowtitle = xbmc.getInfoLabel("VideoPlayer.TVShowTitle")
+
+        # If the TvShow Title is not set, then CHeck the ListItem as well
+        if tvshowtitle not in [None, ""]:
+            tvshowtitle = xbmc.getInfoLabel("ListItem.TVShowTitle")
+
 #         dbid = xbmc.getInfoLabel("ListItem.DBID")
 #         cert = xbmc.getInfoLabel("VideoPlayer.mpaa")
 #         listmpaa = xbmc.getInfoLabel("ListItem.Mpaa")
@@ -99,11 +139,12 @@ class PinSentryPlayer(xbmc.Player):
         securityLevel = 0
         # If it is a TvShow, then check to see if it is enabled for this one
         if tvshowtitle not in [None, ""]:
-            log("PinSentry: VideoPlayer.TVShowTitle: %s" % tvshowtitle)
+            log("PinSentryPlayer: TVShowTitle: %s" % tvshowtitle)
             pinDB = PinSentryDB()
             securityLevel = pinDB.getTvShowSecurityLevel(tvshowtitle)
+            del pinDB
             if securityLevel < 1:
-                log("PinSentry: No security enabled for %s" % tvshowtitle)
+                log("PinSentryPlayer: No security enabled for %s" % tvshowtitle)
                 return
         else:
             # Not a TvShow, so check for the Movie Title
@@ -114,21 +155,22 @@ class PinSentryPlayer(xbmc.Player):
                 title = xbmc.getInfoLabel("ListItem.Title")
 
             if title not in [None, ""]:
-                log("PinSentry: Title: %s" % title)
+                log("PinSentryPlayer: Title: %s" % title)
                 pinDB = PinSentryDB()
                 securityLevel = pinDB.getMovieSecurityLevel(title)
+                del pinDB
                 if securityLevel < 1:
-                    log("PinSentry: No security enabled for %s" % title)
+                    log("PinSentryPlayer: No security enabled for %s" % title)
                     return
             else:
                 # Not a TvShow or Movie - so allow the user to continue
                 # without entering a pin code
-                log("PinSentry: No security enabled, no title available")
+                log("PinSentryPlayer: No security enabled, no title available")
                 return
 
         # Check if we have already cached the pin number and at which level
-        if PinCache.getCachedPinLevel() >= securityLevel:
-            log("PinSentry: Already cached pin at level %d, allowing access" % PinCache.getCachedPinLevel())
+        if PinSentry.getCachedPinLevel() >= securityLevel:
+            log("PinSentryPlayer: Already cached pin at level %d, allowing access" % PinSentry.getCachedPinLevel())
             return
 
         # Pause the video so that we can prompt for the Pin to be entered
@@ -138,34 +180,72 @@ class PinSentryPlayer(xbmc.Player):
         while not xbmc.getCondVisibility("Player.Paused"):
             self.pause()
 
-        log("PinSentry: Pausing video to check if OK to play")
+        log("PinSentryPlayer: Pausing video to check if OK to play")
 
-        numberpad = NumberPad.createNumberPad()
-        numberpad.doModal()
-
-        # Get the code that the user entered
-        enteredPin = numberpad.getPin()
-        del numberpad
-
-        # Check to see if the pin entered is correct
-        if Settings.isPinCorrect(enteredPin):
-            log("PinSentry: OK To Continue")
+        # Prompt the user for the pin, returns True if they knew it
+        if PinSentry.promptUserForPin():
+            log("PinSentryPlayer: Resuming video")
             # Pausing again will start the video playing again
             self.pause()
-
-            # Check if we are allowed to cache the pin level
-            PinCache.setCachedPinLevel(securityLevel)
         else:
-            log("PinSentry: Do not want to continue")
+            log("PinSentryPlayer: Stopping video")
             self.stop()
-            # Invalid Key Notification: Dialog, Popup Notification, None
-            notifType = Settings.getInvalidPinNotificationType()
-            if notifType == Settings.INVALID_PIN_NOTIFICATION_POPUP:
-                cmd = 'XBMC.Notification("{0}", "{1}", 5, "{2}")'.format(__addon__.getLocalizedString(32001).encode('utf-8'), __addon__.getLocalizedString(32104).encode('utf-8'), __icon__)
-                xbmc.executebuiltin(cmd)
-            elif notifType == Settings.INVALID_PIN_NOTIFICATION_DIALOG:
-                xbmcgui.Dialog().ok(__addon__.getLocalizedString(32001).encode('utf-8'), __addon__.getLocalizedString(32104).encode('utf-8'))
-            # Remaining option is to not show any error
+            PinSentry.displayInvalidPinMessage()
+
+
+# Class to handle prompting for a pin when navigating the menu's
+class NavigationRestrictions():
+    def __init__(self):
+        self.lastTvShowChecked = ""
+
+    def checkTvShows(self):
+        # For TV Shows Users could either be in Seasons or Episodes
+        if (not xbmc.getCondVisibility("Container.Content(seasons)")) and (not xbmc.getCondVisibility("Container.Content(episodes)")):
+            # Not in a TV Show view, so nothing to do, Clear any previously
+            # recorded TvShow
+            self.lastTvShowChecked = ""
+            return
+
+        # Get the name of the TvShow
+        tvshow = xbmc.getInfoLabel("ListItem.TVShowTitle")
+
+        if tvshow in [None, "", self.lastTvShowChecked]:
+            # No TvShow currently set - this can take a little time
+            # So do nothing this time and wait until the next time
+            # or this is a TvShow that has already been checked
+            return
+
+        # If we reach here we have a TvShow that we need to check
+        log("NavigationRestrictions: Checking access to view TvShow: %s" % tvshow)
+        self.lastTvShowChecked = tvshow
+
+        # Check to see if the user should have access to this show
+        pinDB = PinSentryDB()
+        securityLevel = pinDB.getTvShowSecurityLevel(tvshow)
+        if securityLevel < 1:
+            log("NavigationRestrictions: No security enabled for %s" % tvshow)
+            return
+        del pinDB
+
+        # Check if we have already cached the pin number and at which level
+        if PinSentry.getCachedPinLevel() >= securityLevel:
+            log("NavigationRestrictions: Already cached pin at level %d, allowing access" % PinSentry.getCachedPinLevel())
+            return
+
+        # Prompt the user for the pin, returns True if they knew it
+        if PinSentry.promptUserForPin():
+            log("NavigationRestrictions: Allowed access to %s" % tvshow)
+        else:
+            log("NavigationRestrictions: Not allowed access to %s which has security level %d" % (tvshow, securityLevel))
+            # Move back to the TvShow Section as they are not allowed where they are at the moment
+            # The following does seem strange, but you can't just call the TV Show list on it's own
+            # In order to get there I had to first go via the home screen
+            xbmc.executebuiltin("ActivateWindow(home)", True)
+            xbmc.executebuiltin("ActivateWindow(Videos,videodb://tvshows/titles/)", True)
+            # Clear the previous TV SHow as we will want to prompt the for pin again it the
+            # user navigates there again
+            self.lastTvShowChecked = ""
+            PinSentry.displayInvalidPinMessage()
 
 
 ##################################
@@ -176,10 +256,14 @@ if __name__ == '__main__':
 
     playerMonitor = PinSentryPlayer()
     systemMonitor = PinSentryMonitor()
+    navRestrictions = NavigationRestrictions()
 
     while (not xbmc.abortRequested):
         xbmc.sleep(100)
+        # Check to see if we need to restrict TvShow access
+        navRestrictions.checkTvShows()
 
     log("Stopping Pin Sentry Service")
+    del navRestrictions
     del playerMonitor
     del systemMonitor

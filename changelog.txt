@@ -3,6 +3,7 @@ Added since 0.0.1
 - Prevent the need to restart after settings change
 - Remember the pin after it has been entered once (Forget after screensaver starts)
 - Support DVD image directory playing
+- Prompt for pin if navigating into a TvShow that is protected
 
 v1.0.0
 - Initial Version
