@@ -60,8 +60,9 @@ class PinSentryDB():
             # The "id" will be auto-generated as the primary key
             # Note: Index will automatically be created for "unique" values, so no
             # need to manually create them
-            c.execute('''CREATE TABLE TvShows (id integer primary key, name text unique, level integer)''')
-            c.execute('''CREATE TABLE Movies (id integer primary key, name text unique, level integer)''')
+            c.execute('''CREATE TABLE TvShows (id integer primary key, name text unique, dbid integer unique, level integer)''')
+            c.execute('''CREATE TABLE Movies (id integer primary key, name text unique, dbid integer unique, level integer)''')
+            c.execute('''CREATE TABLE MovieSets (id integer primary key, name text unique, dbid integer unique, level integer)''')
 
             # Save (commit) the changes
             conn.commit()
@@ -85,33 +86,42 @@ class PinSentryDB():
         return conn
 
     # Set the security value for a given TvShow
-    def setTvShowSecurityLevel(self, showName, level=1):
+    def setTvShowSecurityLevel(self, showName, dbid, level=1):
         ret = -1
         if level > 0:
-            ret = self._insertOrUpdate("TvShows", showName, level)
+            ret = self._insertOrUpdate("TvShows", showName, dbid, level)
         else:
             self._deleteSecurityDetails("TvShows", showName)
         return ret
 
     # Set the security value for a given Movie
-    def setMovieSecurityLevel(self, movieName, level=1):
+    def setMovieSecurityLevel(self, movieName, dbid, level=1):
         ret = -1
         if level > 0:
-            ret = self._insertOrUpdate("Movies", movieName, level)
+            ret = self._insertOrUpdate("Movies", movieName, dbid, level)
         else:
             self._deleteSecurityDetails("Movies", movieName)
         return ret
 
+    # Set the security value for a given Movie Set
+    def setMovieSetSecurityLevel(self, movieSetName, dbid, level=1):
+        ret = -1
+        if level > 0:
+            ret = self._insertOrUpdate("MovieSets", movieSetName, dbid, level)
+        else:
+            self._deleteSecurityDetails("MovieSets", movieSetName)
+        return ret
+
     # Insert or replace an entry in the database
-    def _insertOrUpdate(self, tableName, name, level=1):
-        log("PinSentryDB: Adding %s %s at level %d" % (tableName, name, level))
+    def _insertOrUpdate(self, tableName, name, dbid, level=1):
+        log("PinSentryDB: Adding %s %s (id:%d) at level %d" % (tableName, name, dbid, level))
 
         # Get a connection to the DB
         conn = self.getConnection()
         c = conn.cursor()
 
-        insertData = (name, level)
-        cmd = 'INSERT OR REPLACE INTO %s (name, level) VALUES (?,?)' % tableName
+        insertData = (name, dbid, level)
+        cmd = 'INSERT OR REPLACE INTO %s (name, dbid, level) VALUES (?,?,?)' % tableName
         c.execute(cmd, insertData)
 
         rowId = c.lastrowid
@@ -143,6 +153,10 @@ class PinSentryDB():
     # Get the security value for a given Movie
     def getMovieSecurityLevel(self, movieName):
         return self._getSecurityLevel("Movies", movieName)
+
+    # Get the security value for a given Movie Set
+    def getMovieSetSecurityLevel(self, movieSetName):
+        return self._getSecurityLevel("MovieSets", movieSetName)
 
     # Select the security entry from the database
     def _getSecurityLevel(self, tableName, name):
@@ -176,9 +190,13 @@ class PinSentryDB():
     def getAllTvShowsSecurity(self):
         return self._getAllSecurityDetails("TvShows")
 
-    # Select all Movies entries from the database
+    # Select all Movie entries from the database
     def getAllMoviesSecurity(self):
         return self._getAllSecurityDetails("Movies")
+
+    # Select all Movie Set entries from the database
+    def getAllMovieSetsSecurity(self):
+        return self._getAllSecurityDetails("MovieSets")
 
     # Select all security details from a given table in the database
     def _getAllSecurityDetails(self, tableName):

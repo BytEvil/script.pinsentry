@@ -38,6 +38,7 @@ from database import PinSentryDB
 class MenuNavigator():
     MOVIES = 'movies'
     TVSHOWS = 'tvshows'
+    MOVIESETS = 'sets'
 
     def __init__(self, base_url, addon_handle):
         self.base_url = base_url
@@ -63,6 +64,13 @@ class MenuNavigator():
         li.addContextMenuItems([], replaceItems=True)
         xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
 
+        # TV Shows
+        url = self._build_url({'mode': 'folder', 'foldername': MenuNavigator.MOVIESETS})
+        li = xbmcgui.ListItem(__addon__.getLocalizedString(32203), iconImage=__icon__)
+        li.setProperty("Fanart_Image", __fanart__)
+        li.addContextMenuItems([], replaceItems=True)
+        xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
+
         xbmcplugin.endOfDirectory(self.addon_handle)
 
     # Show the list of videos in a given set
@@ -72,6 +80,8 @@ class MenuNavigator():
             self._setVideoList('GetTVShows', MenuNavigator.TVSHOWS, 'tvshowid')
         elif foldername == MenuNavigator.MOVIES:
             self._setVideoList('GetMovies', MenuNavigator.MOVIES, 'movieid')
+        elif foldername == MenuNavigator.MOVIESETS:
+            self._setVideoList('GetMovieSets', MenuNavigator.MOVIESETS, 'setid')
 
     # Produce the list of videos and flag which ones with securoty details
     def _setVideoList(self, jsonGet, target, dbid):
@@ -92,12 +102,6 @@ class MenuNavigator():
             except:
                 log("setVideoList: Failed to encode title %s" % title)
 
-            filename = ""
-            try:
-                filename = videoItem['file'].encode("utf-8")
-            except:
-                log("setVideoList: Failed to encode filename %s" % filename)
-
             # Record what the new security level will be is selected
             newSecurityLevel = 1
             # Add a tick if security is set
@@ -106,25 +110,22 @@ class MenuNavigator():
                 # Next time the item is selected, it will be disabled
                 newSecurityLevel = 0
 
-#            url = self._build_url({'mode': 'setsecurity', 'type': target, 'title': title, 'dbid': videoItem['dbid'], 'filename': filename})
-            url = self._build_url({'mode': 'setsecurity', 'level': newSecurityLevel, 'type': target, 'title': title})
+            url = self._build_url({'mode': 'setsecurity', 'level': newSecurityLevel, 'type': target, 'title': title, 'id': videoItem['dbid']})
             xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
 
         xbmcplugin.endOfDirectory(self.addon_handle)
 
     # Do a lookup in the database for the given type of videos
     def _getVideos(self, jsonGet, target, dbid):
-        json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.%s", "params": {"properties": ["title", "file", "thumbnail", "fanart"], "sort": { "method": "title" } }, "id": 1}' % jsonGet)
+        json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.%s", "params": {"properties": ["title", "thumbnail", "fanart"], "sort": { "method": "title" } }, "id": 1}' % jsonGet)
         json_query = unicode(json_query, 'utf-8', errors='ignore')
         json_response = simplejson.loads(json_query)
         log(json_response)
-        Videolist = []
+        videolist = []
         if ("result" in json_response) and (target in json_response['result']):
             for item in json_response['result'][target]:
                 videoItem = {}
                 videoItem['title'] = item['title']
-                # The file is actually the path for a TV Show, the video file for movies
-                videoItem['file'] = item['file']
 
                 if item['thumbnail'] is None:
                     item['thumbnail'] = 'DefaultFolder.png'
@@ -134,8 +135,8 @@ class MenuNavigator():
 
                 videoItem['dbid'] = item[dbid]
 
-                Videolist.append(videoItem)
-        return Videolist
+                videolist.append(videoItem)
+        return videolist
 
     # Adds the current security details to the video items
     def _addSecurityFlagToVideos(self, type, videoItems):
@@ -151,6 +152,8 @@ class MenuNavigator():
             securityDetails = pinDB.getAllTvShowsSecurity()
         elif type == MenuNavigator.MOVIES:
             securityDetails = pinDB.getAllMoviesSecurity()
+        elif type == MenuNavigator.MOVIESETS:
+            securityDetails = pinDB.getAllMovieSetsSecurity()
 
         for videoItem in videoItems:
             # Default security to 0 (Not Set)
@@ -166,22 +169,40 @@ class MenuNavigator():
         return videoItems
 
     # Set the security value for a given video
-    def setSecurity(self, type, title, level):
-        log("Setting security for %s" % title)
+    def setSecurity(self, type, title, id, level):
+        log("Setting security for (id:%d) %s" % (id, title))
         if title not in [None, ""]:
             pinDB = PinSentryDB()
             if type == MenuNavigator.TVSHOWS:
                 # Set the security level for this title, setting it to zero
                 # will result in the entry being removed from the database
                 # as the default for an item is unset
-                pinDB.setTvShowSecurityLevel(title, level)
+                pinDB.setTvShowSecurityLevel(title, id, level)
             elif type == MenuNavigator.MOVIES:
-                pinDB.setMovieSecurityLevel(title, level)
+                pinDB.setMovieSecurityLevel(title, id, level)
+            elif type == MenuNavigator.MOVIESETS:
+                pinDB.setMovieSetSecurityLevel(title, id, level)
+                # As well as setting the security on the Movie set, we need
+                # to also set it on each movie in the Movie Set
+                self._setSecurityOnMoviesInMovieSets(id, level)
             del pinDB
 
         # Now reload the screen to reflect the change
         xbmc.executebuiltin("Container.Refresh")
 
+    def _setSecurityOnMoviesInMovieSets(self, setid, level):
+        log("Setting security for movies in movie set %d" % setid)
+        # Get all the movies in the movie set
+        json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieSetDetails", "params": { "setid": %d, "properties": ["title"] }, "id": 1}' % setid)
+        json_query = unicode(json_query, 'utf-8', errors='ignore')
+        json_response = simplejson.loads(json_query)
+        log(json_response)
+        if ("result" in json_response) and ('setdetails' in json_response['result']):
+            if 'movies' in json_response['result']['setdetails']:
+                for item in json_response['result']['setdetails']['movies']:
+                    # Now set the security on the movies in the set
+                    self.setSecurity(MenuNavigator.MOVIES, item['label'], item['movieid'], level)
+        return
 
 ################################
 # Main of the PinSentry Plugin
@@ -225,6 +246,7 @@ if __name__ == '__main__':
         type = args.get('type', None)
         title = args.get('title', None)
         level = args.get('level', None)
+        id = args.get('id', None)
 
         if (type is not None) and (len(type) > 0):
             log("PinSentryPlugin: Type to set security for %s" % type[0])
@@ -234,7 +256,10 @@ if __name__ == '__main__':
             secLevel = 0
             if (level is not None) and (len(level) > 0):
                 secLevel = int(level[0])
+            dbid = 0
+            if (id is not None) and (len(id) > 0):
+                dbid = int(id[0])
 
             menuNav = MenuNavigator(base_url, addon_handle)
-            menuNav.setSecurity(type[0], secTitle, secLevel)
+            menuNav.setSecurity(type[0], secTitle, dbid, secLevel)
             del menuNav
