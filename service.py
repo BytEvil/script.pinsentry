@@ -131,11 +131,13 @@ class PinSentryPlayer(xbmc.Player):
             log("PinSentry: Already cached pin at level %d, allowing access" % PinCache.getCachedPinLevel())
             return
 
-        # Make sure the video starts before we pause it, this can be the case on a slow system
-        xbmc.sleep(1000)
-
         # Pause the video so that we can prompt for the Pin to be entered
-        self.pause()
+        # On some systems we could get notified that we have started playing a video
+        # before it has actually been started, so keep trying to pause until we get
+        # one that works
+        while not xbmc.getCondVisibility("Player.Paused"):
+            self.pause()
+
         log("PinSentry: Pausing video to check if OK to play")
 
         numberpad = NumberPad.createNumberPad()
