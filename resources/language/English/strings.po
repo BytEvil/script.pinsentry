@@ -151,3 +151,7 @@ msgstr ""
 msgctxt "#32203"
 msgid "Movie Sets"
 msgstr ""
+
+msgctxt "#32204"
+msgid "Plugins"
+msgstr ""

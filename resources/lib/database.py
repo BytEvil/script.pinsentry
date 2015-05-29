@@ -63,6 +63,7 @@ class PinSentryDB():
             c.execute('''CREATE TABLE TvShows (id integer primary key, name text unique, dbid integer unique, level integer)''')
             c.execute('''CREATE TABLE Movies (id integer primary key, name text unique, dbid integer unique, level integer)''')
             c.execute('''CREATE TABLE MovieSets (id integer primary key, name text unique, dbid integer unique, level integer)''')
+            c.execute('''CREATE TABLE Plugins (id integer primary key, name text unique, dbid text unique, level integer)''')
 
             # Save (commit) the changes
             conn.commit()
@@ -112,9 +113,18 @@ class PinSentryDB():
             self._deleteSecurityDetails("MovieSets", movieSetName)
         return ret
 
+    # Set the security value for a given Plugin
+    def setPluginSecurityLevel(self, pluginName, dbid, level=1):
+        ret = -1
+        if level > 0:
+            ret = self._insertOrUpdate("Plugins", pluginName, dbid, level)
+        else:
+            self._deleteSecurityDetails("Plugins", pluginName)
+        return ret
+
     # Insert or replace an entry in the database
     def _insertOrUpdate(self, tableName, name, dbid, level=1):
-        log("PinSentryDB: Adding %s %s (id:%d) at level %d" % (tableName, name, dbid, level))
+        log("PinSentryDB: Adding %s %s (id:%s) at level %d" % (tableName, name, str(dbid), level))
 
         # Get a connection to the DB
         conn = self.getConnection()
@@ -158,6 +168,10 @@ class PinSentryDB():
     def getMovieSetSecurityLevel(self, movieSetName):
         return self._getSecurityLevel("MovieSets", movieSetName)
 
+    # Get the security value for a given Plugin
+    def getPluginSecurityLevel(self, pluginName):
+        return self._getSecurityLevel("Plugins", pluginName)
+
     # Select the security entry from the database
     def _getSecurityLevel(self, tableName, name):
         log("PinSentryDB: select %s for %s" % (tableName, name))
@@ -179,9 +193,10 @@ class PinSentryDB():
 
             # Return will contain
             # row[0] - Unique Index in the DB
-            # row[1] - Name of the TvShow
-            # row[2] - Security Level
-            securityLevel = row[2]
+            # row[1] - Name of the TvShow/Movie/MovieSet
+            # row[2] - dbid
+            # row[3] - Security Level
+            securityLevel = row[3]
 
         conn.close()
         return securityLevel
@@ -197,6 +212,10 @@ class PinSentryDB():
     # Select all Movie Set entries from the database
     def getAllMovieSetsSecurity(self):
         return self._getAllSecurityDetails("MovieSets")
+
+    # Select all Movie Set entries from the database
+    def getAllPluginsSecurity(self):
+        return self._getAllSecurityDetails("Plugins")
 
     # Select all security details from a given table in the database
     def _getAllSecurityDetails(self, tableName):
@@ -219,11 +238,12 @@ class PinSentryDB():
 
             # Return will contain
             # row[0] - Unique Index in the DB
-            # row[1] - Name of the TvShow/Movie/MusicVideo
-            # row[2] - Security Level
+            # row[1] - Name of the TvShow/Movie/MovieSet
+            # row[2] - dbid
+            # row[3] - Security Level
             for row in rows:
                 name = row[1]
-                resultDict[name] = row[2]
+                resultDict[name] = row[3]
 
         conn.close()
         return resultDict

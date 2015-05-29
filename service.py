@@ -24,11 +24,10 @@ from database import PinSentryDB
 
 # Feature Options:
 # Different Pins for different priorities (one a subset of the next)
-# Setting for a Group/Movie Set
-# Settings for given Video Plugins
-# Option to have the pin requested during navigation (i.e. selecting a TV Show)
 # Restrictions based on certificate/classification
 # Option to have different passwords without the numbers (Remote with no numbers?)
+# Force Pin entry if changing the PinSentry Settings
+
 
 # Class to handle core Pin Sentry behaviour
 class PinSentry():
@@ -128,11 +127,9 @@ class PinSentryPlayer(xbmc.Player):
         if tvshowtitle not in [None, ""]:
             tvshowtitle = xbmc.getInfoLabel("ListItem.TVShowTitle")
 
-#         dbid = xbmc.getInfoLabel("ListItem.DBID")
 #         cert = xbmc.getInfoLabel("VideoPlayer.mpaa")
 #         listmpaa = xbmc.getInfoLabel("ListItem.Mpaa")
 
-#         log("*** ROB ***: ListItem.DBID: %s" % str(dbid))
 #         log("*** ROB ***: VideoPlayer.mpaa: %s" % str(cert))
 #         log("*** ROB ***: ListItem.Mpaa: %s" % str(listmpaa))
 
@@ -197,13 +194,17 @@ class PinSentryPlayer(xbmc.Player):
 class NavigationRestrictions():
     def __init__(self):
         self.lastTvShowChecked = ""
+        self.lastMovieSetChecked = ""
+        self.lastPluginChecked = ""
 
+    # Checks if the user has navigated to a TvShow that needs a pin
     def checkTvShows(self):
         # For TV Shows Users could either be in Seasons or Episodes
         if (not xbmc.getCondVisibility("Container.Content(seasons)")) and (not xbmc.getCondVisibility("Container.Content(episodes)")):
             # Not in a TV Show view, so nothing to do, Clear any previously
             # recorded TvShow
-            self.lastTvShowChecked = ""
+            if 'videodb://' in xbmc.getInfoLabel("Container.FolderPath"):
+                self.lastTvShowChecked = ""
             return
 
         # Get the name of the TvShow
@@ -242,9 +243,107 @@ class NavigationRestrictions():
             # In order to get there I had to first go via the home screen
             xbmc.executebuiltin("ActivateWindow(home)", True)
             xbmc.executebuiltin("ActivateWindow(Videos,videodb://tvshows/titles/)", True)
-            # Clear the previous TV SHow as we will want to prompt the for pin again it the
+            # Clear the previous TV Show as we will want to prompt for the pin again if the
             # user navigates there again
             self.lastTvShowChecked = ""
+            PinSentry.displayInvalidPinMessage()
+
+    # Checks if the user has navigated to a Movie Set that needs a pin
+    def checkMovieSets(self):
+        # Check if the user has navigated into a movie set
+        navPath = xbmc.getInfoLabel("Container.FolderPath")
+
+        if 'videodb://movies/sets/' not in navPath:
+            # Not in a Movie Set view, so nothing to do
+            if 'videodb://' in navPath:
+                self.lastMovieSetChecked = ""
+            return
+
+        # Get the name of the movie set
+        moveSetName = xbmc.getInfoLabel("Container.FolderName")
+
+        if moveSetName in [None, "", self.lastMovieSetChecked]:
+            # No Movie Set currently set - this can take a little time
+            # So do nothing this time and wait until the next time
+            # or this is a Movie set that has already been checked
+            return
+
+        # If we reach here we have a Movie Set that we need to check
+        log("NavigationRestrictions: Checking access to view Movie Set: %s" % moveSetName)
+        self.lastMovieSetChecked = moveSetName
+
+        # Check to see if the user should have access to this set
+        pinDB = PinSentryDB()
+        securityLevel = pinDB.getMovieSetSecurityLevel(moveSetName)
+        if securityLevel < 1:
+            log("NavigationRestrictions: No security enabled for movie set %s" % moveSetName)
+            return
+        del pinDB
+
+        # Check if we have already cached the pin number and at which level
+        if PinSentry.getCachedPinLevel() >= securityLevel:
+            log("NavigationRestrictions: Already cached pin at level %d, allowing access" % PinSentry.getCachedPinLevel())
+            return
+
+        # Prompt the user for the pin, returns True if they knew it
+        if PinSentry.promptUserForPin():
+            log("NavigationRestrictions: Allowed access to movie set %s" % moveSetName)
+        else:
+            log("NavigationRestrictions: Not allowed access to movie set %s which has security level %d" % (moveSetName, securityLevel))
+            # Move back to the Movie Section as they are not allowed where they are at the moment
+            xbmc.executebuiltin("ActivateWindow(Videos,videodb://movies/titles/)", True)
+            # Clear the previous Movie Set as we will want to prompt for the pin again if the
+            # user navigates there again
+            self.lastMovieSetChecked = ""
+            PinSentry.displayInvalidPinMessage()
+
+    # Check if a user has navigated to a Plugin that requires a Pin
+    def checkPlugins(self):
+        navPath = xbmc.getInfoLabel("Container.FolderPath")
+        if 'plugin://' not in navPath:
+            # No Plugin currently set or this is a Movie set that has already been checked
+            return
+
+        # Check if we are in a plugin location
+        pluginName = xbmc.getInfoLabel("Container.FolderName")
+
+        if pluginName in [None, "", self.lastPluginChecked]:
+            # No Plugin currently set or this is a Movie set that has already been checked
+            return
+
+        # If we reach here we have aPlugin that we need to check
+        log("NavigationRestrictions: Checking access to view Plugin: %s" % pluginName)
+        self.lastPluginChecked = pluginName
+
+        securityLevel = 0
+        # Check to see if the user should have access to this plugin
+        pinDB = PinSentryDB()
+        securityLevel = pinDB.getPluginSecurityLevel(pluginName)
+        if securityLevel < 1:
+            # Check for the special case that we are accessing ourself
+            # in which case we have a minimum security level
+            if 'PinSentry' in pluginName:
+                securityLevel = 1
+            else:
+                log("NavigationRestrictions: No security enabled for plugin %s" % pluginName)
+                return
+        del pinDB
+
+        # Check if we have already cached the pin number and at which level
+        if PinSentry.getCachedPinLevel() >= securityLevel:
+            log("NavigationRestrictions: Already cached pin at level %d, allowing access" % PinSentry.getCachedPinLevel())
+            return
+
+        # Prompt the user for the pin, returns True if they knew it
+        if PinSentry.promptUserForPin():
+            log("NavigationRestrictions: Allowed access to plugin %s" % pluginName)
+        else:
+            log("NavigationRestrictions: Not allowed access to plugin %s which has security level %d" % (pluginName, securityLevel))
+            # Move back to the Video plugin Screen as they are not allowed where they are at the moment
+            xbmc.executebuiltin("ActivateWindow(Video,addons://sources/video/)", True)
+            # Clear the previous plugin as we will want to prompt for the pin again if the
+            # user navigates there again
+            self.lastPluginChecked = ""
             PinSentry.displayInvalidPinMessage()
 
 
@@ -262,6 +361,8 @@ if __name__ == '__main__':
         xbmc.sleep(100)
         # Check to see if we need to restrict TvShow access
         navRestrictions.checkTvShows()
+        navRestrictions.checkMovieSets()
+        navRestrictions.checkPlugins()
 
     log("Stopping Pin Sentry Service")
     del navRestrictions
