@@ -100,7 +100,27 @@ msgctxt "#32119"
 msgid "Remember Pin After First Use"
 msgstr ""
 
-#empty strings from id 32020 to 32100
+msgctxt "#32120"
+msgid "Background"
+msgstr ""
+
+msgctxt "#32121"
+msgid "Black"
+msgstr ""
+
+msgctxt "#32122"
+msgid "PinSentry"
+msgstr ""
+
+msgctxt "#32123"
+msgid "Custom"
+msgstr ""
+
+msgctxt "#32124"
+msgid "Custom Background Image"
+msgstr ""
+
+#empty strings from id 32025 to 32100
 
 msgctxt "#32101"
 msgid "Backspace"

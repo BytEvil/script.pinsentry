@@ -1,9 +1,5 @@
-Changes Since beta 0.0.2
-- Add option to select pins for movie sets (Automatically sets Movies in the set)
-- Movie Set Pin Prompt Navigation Support
-- Add option to restrict access to video plugins
-
-NOTE: DB Clean Required
+Changes Since beta 0.0.3
+- Option to change the background when the Pin is prompted for
 
 v1.0.0
 - Initial Version

@@ -118,3 +118,20 @@ class Settings():
     @staticmethod
     def isPinCachingEnabled():
         return __addon__.getSetting("pinCachingEnabled") == 'true'
+
+    @staticmethod
+    def isDisplayBackground():
+        return __addon__.getSetting("background") != "0"
+
+    @staticmethod
+    def getBackgroundImage():
+        selectIdx = __addon__.getSetting("background")
+        if selectIdx == "2":
+            # PinSentry Fanart file as the BackgroundBrowser
+            return __addon__.getAddonInfo('fanart')
+        elif selectIdx == "3":
+            # Custom image selected, so return the value entered
+            return __addon__.getSetting("backgroundImage")
+        # If we reach here then there is no background image
+        # or we want a black background
+        return None

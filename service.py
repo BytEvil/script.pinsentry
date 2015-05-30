@@ -20,6 +20,7 @@ from settings import Settings
 
 from numberpad import NumberPad
 from database import PinSentryDB
+from background import Background
 
 
 # Feature Options:
@@ -55,9 +56,19 @@ class PinSentry():
     def promptUserForPin():
         userHasAccess = True
 
+        # Set the background
+        background = Background.createBackground()
+        if background is not None:
+            background.show()
+
         # Prompt the user to enter the pin
         numberpad = NumberPad.createNumberPad()
         numberpad.doModal()
+
+        # Remove the background if we had one
+        if background is not None:
+            background.close()
+            del background
 
         # Get the code that the user entered
         enteredPin = numberpad.getPin()
