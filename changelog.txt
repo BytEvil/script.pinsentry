@@ -1,5 +1,6 @@
 Changes Since beta 0.0.3
 - Option to change the background when the Pin is prompted for
+- Allow different parts of PinSentry to be disabled (Navigation, plugins etc)
 
 v1.0.0
 - Initial Version

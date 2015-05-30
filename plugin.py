@@ -27,7 +27,7 @@ sys.path.append(__resource__)
 sys.path.append(__lib__)
 
 # Import the common settings
-# from settings import Settings
+from settings import Settings
 from settings import log
 from database import PinSentryDB
 
@@ -73,11 +73,12 @@ class MenuNavigator():
         xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
 
         # Plugins
-        url = self._build_url({'mode': 'folder', 'foldername': MenuNavigator.PLUGINS})
-        li = xbmcgui.ListItem(__addon__.getLocalizedString(32204), iconImage=__icon__)
-        li.setProperty("Fanart_Image", __fanart__)
-        li.addContextMenuItems([], replaceItems=True)
-        xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
+        if Settings.isActivePlugins():
+            url = self._build_url({'mode': 'folder', 'foldername': MenuNavigator.PLUGINS})
+            li = xbmcgui.ListItem(__addon__.getLocalizedString(32204), iconImage=__icon__)
+            li.setProperty("Fanart_Image", __fanart__)
+            li.addContextMenuItems([], replaceItems=True)
+            xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
 
         xbmcplugin.endOfDirectory(self.addon_handle)
 

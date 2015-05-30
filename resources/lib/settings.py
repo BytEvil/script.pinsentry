@@ -135,3 +135,15 @@ class Settings():
         # If we reach here then there is no background image
         # or we want a black background
         return None
+
+    @staticmethod
+    def isActiveVideoPlaying():
+        return __addon__.getSetting("activityVideoPlaying") == 'true'
+
+    @staticmethod
+    def isActiveNavigation():
+        return __addon__.getSetting("activityNavigation") == 'true'
+
+    @staticmethod
+    def isActivePlugins():
+        return __addon__.getSetting("activityPlugins") == 'true'

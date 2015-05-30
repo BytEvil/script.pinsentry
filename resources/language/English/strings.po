@@ -120,7 +120,23 @@ msgctxt "#32124"
 msgid "Custom Background Image"
 msgstr ""
 
-#empty strings from id 32025 to 32100
+msgctxt "#32125"
+msgid "Activity"
+msgstr ""
+
+msgctxt "#32126"
+msgid "Video Playing"
+msgstr ""
+
+msgctxt "#32127"
+msgid "Navigation"
+msgstr ""
+
+msgctxt "#32128"
+msgid "Plugins"
+msgstr ""
+
+#empty strings from id 32029 to 32100
 
 msgctxt "#32101"
 msgid "Backspace"

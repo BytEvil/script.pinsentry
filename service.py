@@ -115,6 +115,8 @@ class PinSentryPlayer(xbmc.Player):
         xbmc.Player.__init__(self)
 
     def onPlayBackStarted(self):
+        if not Settings.isActiveVideoPlaying():
+            return
         log("PinSentryPlayer: Notification that something started playing")
 
         # Only interested if it is not playing music
@@ -370,10 +372,12 @@ if __name__ == '__main__':
 
     while (not xbmc.abortRequested):
         xbmc.sleep(100)
-        # Check to see if we need to restrict TvShow access
-        navRestrictions.checkTvShows()
-        navRestrictions.checkMovieSets()
-        navRestrictions.checkPlugins()
+        # Check to see if we need to restrict navigation access
+        if Settings.isActiveNavigation():
+            navRestrictions.checkTvShows()
+            navRestrictions.checkMovieSets()
+        if Settings.isActivePlugins():
+            navRestrictions.checkPlugins()
 
     log("Stopping Pin Sentry Service")
     del navRestrictions
