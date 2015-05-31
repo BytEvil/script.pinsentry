@@ -3,6 +3,7 @@ Changes Since beta 0.0.3
 - Allow different parts of PinSentry to be disabled (Navigation, plugins etc)
 - Stop Double Pin Prompt on quick double select of video
 - Fix issue with TV Show not being detected as protected
+- Force Pin entry if changing the PinSentry Settings
 
 v1.0.0
 - Initial Version

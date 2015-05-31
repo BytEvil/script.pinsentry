@@ -27,12 +27,18 @@ from background import Background
 # Different Pins for different priorities (one a subset of the next)
 # Restrictions based on certificate/classification
 # Option to have different passwords without the numbers (Remote with no numbers?)
-# Force Pin entry if changing the PinSentry Settings
 
 
 # Class to handle core Pin Sentry behaviour
 class PinSentry():
     pinLevelCached = 0
+
+    @staticmethod
+    def isPinSentryEnabled():
+        # Check if the Pin is set, as no point prompting if it is not
+        if (not Settings.isPinSet()) or (not Settings.isPinActive()):
+            return False
+        return True
 
     @staticmethod
     def clearPinCached():
@@ -130,7 +136,7 @@ class PinSentryPlayer(xbmc.Player):
             return
 
         # Check if the Pin is set, as no point prompting if it is not
-        if (not Settings.isPinSet()) or (not Settings.isPinActive()):
+        if not PinSentry.isPinSentryEnabled():
             return
 
         # Get the information for what is currently playing
@@ -221,6 +227,7 @@ class NavigationRestrictions():
         self.lastTvShowChecked = ""
         self.lastMovieSetChecked = ""
         self.lastPluginChecked = ""
+        self.canChangeSettings = False
 
     # Checks if the user has navigated to a TvShow that needs a pin
     def checkTvShows(self):
@@ -340,6 +347,12 @@ class NavigationRestrictions():
         log("NavigationRestrictions: Checking access to view Plugin: %s" % pluginName)
         self.lastPluginChecked = pluginName
 
+        # Check for the case where the user does not want to check plugins
+        # but the Pin Sentry plugin is selected, we always need to check this
+        # as it is how permissions are set
+        if (not Settings.isActivePlugins()) and ('PinSentry' not in pluginName):
+            return
+
         securityLevel = 0
         # Check to see if the user should have access to this plugin
         pinDB = PinSentryDB()
@@ -371,6 +384,59 @@ class NavigationRestrictions():
             self.lastPluginChecked = ""
             PinSentry.displayInvalidPinMessage()
 
+    # Checks to see if the PinSentry addons screen has been opened
+    def checkSettings(self):
+        # Check if we are in the Addon Information page (which can be used to disable the addon)
+        # or the actual setting page
+        addonSettings = xbmc.getCondVisibility("Window.IsActive(10140)")
+        addonInformation = xbmc.getCondVisibility("Window.IsActive(10146)")
+
+        if not addonSettings and not addonInformation:
+            self.canChangeSettings = False
+            return
+
+        # If we have already allowed the user to change settings, no need to check again
+        if self.canChangeSettings:
+            return
+
+        # Check if the addon is the PinSentry addon
+        addonId = xbmc.getInfoLabel("ListItem.Property(Addon.ID)")
+        if 'script.pinsentry' not in addonId:
+            return
+
+        # Need to make sure this user has access to change the settings
+        pinDB = PinSentryDB()
+        securityLevel = pinDB.getPluginSecurityLevel('PinSentry')
+        del pinDB
+
+        if securityLevel < 1:
+            securityLevel = 1
+
+        # Check if we have already cached the pin number and at which level
+        if PinSentry.getCachedPinLevel() >= securityLevel:
+            log("NavigationRestrictions: Already cached pin at level %d, allowing access" % PinSentry.getCachedPinLevel())
+            return
+
+        # Before we prompt the user we need to close the dialog, otherwise the pin
+        # dialog will appear behind it
+        xbmc.executebuiltin("Dialog.Close(all, true)", True)
+
+        # Prompt the user for the pin, returns True if they knew it
+        if PinSentry.promptUserForPin():
+            log("NavigationRestrictions: Allowed access to settings")
+            self.canChangeSettings = True
+            # Open the dialogs that should be shown
+            if addonInformation:
+                # Open the addon Information dialog
+                xbmc.executebuiltin("ActivateWindow(10146)", True)
+            elif addonSettings:
+                # Open the addon settings dialog
+                xbmc.executebuiltin("Addon.OpenSettings(script.pinsentry)", True)
+        else:
+            log("NavigationRestrictions: Not allowed access to settings which has security level %d" % securityLevel)
+            self.canChangeSettings = False
+            PinSentry.displayInvalidPinMessage()
+
 
 ##################################
 # Main of the PinSentry Service
@@ -384,12 +450,16 @@ if __name__ == '__main__':
 
     while (not xbmc.abortRequested):
         xbmc.sleep(100)
-        # Check to see if we need to restrict navigation access
-        if Settings.isActiveNavigation():
-            navRestrictions.checkTvShows()
-            navRestrictions.checkMovieSets()
-        if Settings.isActivePlugins():
+        # Check if the Pin is set, as no point prompting if it is not
+        if PinSentry.isPinSentryEnabled():
+            # Check to see if we need to restrict navigation access
+            if Settings.isActiveNavigation():
+                navRestrictions.checkTvShows()
+                navRestrictions.checkMovieSets()
+            # Always call the plugin check as we have to check if the user is setting
+            # permissions using the PinSentry plugin
             navRestrictions.checkPlugins()
+            navRestrictions.checkSettings()
 
     log("Stopping Pin Sentry Service")
     del navRestrictions
