@@ -117,6 +117,7 @@ class PinSentryPlayer(xbmc.Player):
     def onPlayBackStarted(self):
         if not Settings.isActiveVideoPlaying():
             return
+
         log("PinSentryPlayer: Notification that something started playing")
 
         # Only interested if it is not playing music
@@ -136,8 +137,8 @@ class PinSentryPlayer(xbmc.Player):
         # http://kodi.wiki/view/InfoLabels#Video_player
         tvshowtitle = xbmc.getInfoLabel("VideoPlayer.TVShowTitle")
 
-        # If the TvShow Title is not set, then CHeck the ListItem as well
-        if tvshowtitle not in [None, ""]:
+        # If the TvShow Title is not set, then Check the ListItem as well
+        if tvshowtitle in [None, ""]:
             tvshowtitle = xbmc.getInfoLabel("ListItem.TVShowTitle")
 
 #         cert = xbmc.getInfoLabel("VideoPlayer.mpaa")
@@ -183,6 +184,15 @@ class PinSentryPlayer(xbmc.Player):
             log("PinSentryPlayer: Already cached pin at level %d, allowing access" % PinSentry.getCachedPinLevel())
             return
 
+        # Before we start prompting the user for the pin, check to see if we
+        # have already been called and are prompting in another thread
+        if xbmcgui.Window(10000).getProperty("PinSentryPrompting"):
+            log("PinSentryPlayer: Already prompting for security code")
+            return
+
+        # Set the flag so other threads know we are processing this play request
+        xbmcgui.Window(10000).setProperty("PinSentryPrompting", "true")
+
         # Pause the video so that we can prompt for the Pin to be entered
         # On some systems we could get notified that we have started playing a video
         # before it has actually been started, so keep trying to pause until we get
@@ -201,6 +211,8 @@ class PinSentryPlayer(xbmc.Player):
             log("PinSentryPlayer: Stopping video")
             self.stop()
             PinSentry.displayInvalidPinMessage()
+
+        xbmcgui.Window(10000).clearProperty("PinSentryPrompting")
 
 
 # Class to handle prompting for a pin when navigating the menu's
