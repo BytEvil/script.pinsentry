@@ -91,13 +91,23 @@ class NumberPad(xbmcgui.WindowXMLDialog):
         elif action == ACTION_BACKSPACE:
             # Backspace has been pressed
             self._removeLastCharacter()
-        elif (id > 57) and (id < 69):
+        elif (id > 57) and (id < 68):
             # NumericValue found, convert it
             # Numbers as follows
             # 58 = 0, 59 = 1 ...
             # So take 58 off and you get the number
             numVal = id - 58
             self._numberEntered(numVal)
+        elif (id > 139) and (id < 150):
+            # Remote control can send different keys
+            # NumericValue found, convert it
+            # Numbers as follows
+            # 140 = 0, 141 = 1 ...
+            # So take 58 off and you get the number
+            numVal = id - 140
+            self._numberEntered(numVal)
+        else:
+            log("NumberPad: Unknown key pressed %s" % str(id))
 
     # Record that a numeric value has been entered by the user
     def _numberEntered(self, numValue):
