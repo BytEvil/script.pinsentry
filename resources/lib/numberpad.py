@@ -36,8 +36,6 @@ class NumberPad(xbmcgui.WindowXMLDialog):
         return self.code
 
     def onInit(self):
-        xbmcgui.WindowXMLDialog.onInit(self)
-
         # Disable the buttons we are not interested in
         try:
             prevButton = self.getControl(NumberPad.BUTTON_PREVIOUS)
@@ -76,6 +74,8 @@ class NumberPad(xbmcgui.WindowXMLDialog):
             self.getControl(1).setLabel(__addon__.getLocalizedString(self.titleLangId).encode('utf-8'))
         except:
             log("NumberPad: Failed to set title")
+
+        xbmcgui.WindowXMLDialog.onInit(self)
 
     # Detect things like remote control of keyboard button presses
     def onAction(self, action):
