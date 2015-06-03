@@ -90,11 +90,11 @@ class MenuNavigator():
             xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
 
         # Files
-#         url = self._build_url({'mode': 'folder', 'foldername': MenuNavigator.FILESOURCE})
-#         li = xbmcgui.ListItem(__addon__.getLocalizedString(32206), iconImage=__icon__)
-#         li.setProperty("Fanart_Image", __fanart__)
-#         li.addContextMenuItems([], replaceItems=True)
-#         xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
+        url = self._build_url({'mode': 'folder', 'foldername': MenuNavigator.FILESOURCE})
+        li = xbmcgui.ListItem(__addon__.getLocalizedString(32206), iconImage=__icon__)
+        li.setProperty("Fanart_Image", __fanart__)
+        li.addContextMenuItems([], replaceItems=True)
+        xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
 
         xbmcplugin.endOfDirectory(self.addon_handle)
 

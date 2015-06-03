@@ -141,11 +141,11 @@ class PinSentryPlayer(xbmc.Player):
 
         # Get the information for what is currently playing
         # http://kodi.wiki/view/InfoLabels#Video_player
-        tvshowtitle = xbmc.getInfoLabel("VideoPlayer.TVShowTitle")
+        title = xbmc.getInfoLabel("VideoPlayer.TVShowTitle")
 
         # If the TvShow Title is not set, then Check the ListItem as well
-        if tvshowtitle in [None, ""]:
-            tvshowtitle = xbmc.getInfoLabel("ListItem.TVShowTitle")
+        if title in [None, ""]:
+            title = xbmc.getInfoLabel("ListItem.TVShowTitle")
 
 #         cert = xbmc.getInfoLabel("VideoPlayer.mpaa")
 #         listmpaa = xbmc.getInfoLabel("ListItem.Mpaa")
@@ -155,14 +155,11 @@ class PinSentryPlayer(xbmc.Player):
 
         securityLevel = 0
         # If it is a TvShow, then check to see if it is enabled for this one
-        if tvshowtitle not in [None, ""]:
-            log("PinSentryPlayer: TVShowTitle: %s" % tvshowtitle)
+        if title not in [None, ""]:
+            log("PinSentryPlayer: TVShowTitle: %s" % title)
             pinDB = PinSentryDB()
-            securityLevel = pinDB.getTvShowSecurityLevel(tvshowtitle)
+            securityLevel = pinDB.getTvShowSecurityLevel(title)
             del pinDB
-            if securityLevel < 1:
-                log("PinSentryPlayer: No security enabled for %s" % tvshowtitle)
-                return
         else:
             # Not a TvShow, so check for the Movie Title
             title = xbmc.getInfoLabel("VideoPlayer.Title")
@@ -184,14 +181,38 @@ class PinSentryPlayer(xbmc.Player):
                     pinDB = PinSentryDB()
                     securityLevel = pinDB.getMusicVideoSecurityLevel(title)
                     del pinDB
-                    if securityLevel < 1:
-                        log("PinSentryPlayer: No security enabled for %s" % title)
-                        return
-            else:
+
+        if securityLevel < 1:
+            # Get the path of the file being played
+            filePath = xbmc.getInfoLabel("Player.Folderpath")
+            if filePath in [None, ""]:
+                filePath = xbmc.getInfoLabel("Player.Filenameandpath")
+            if filePath in [None, ""]:
+                filePath = xbmc.getInfoLabel("ListItem.FolderPath")
+            if filePath in [None, ""]:
+                filePath = xbmc.getInfoLabel("ListItem.FileNameAndPath")
+            log("PinSentryPlayer: Checking file path: %s" % filePath)
+
+            # Get all the sources that are protected
+            pinDB = PinSentryDB()
+            securityDetails = pinDB.getAllFileSourcesPathsSecurity()
+            del pinDB
+
+            # Each key is in path with security applied
+            for key in securityDetails.keys():
+                if key in filePath:
+                    securityLevel = securityDetails[key]
+                    log("PinSentryPlayer: Setting path based security to %d" % securityLevel)
+
+        # Check if security has been set on this item
+        if securityLevel < 1:
+            if title in [None, ""]:
                 # Not a TvShow or Movie - so allow the user to continue
                 # without entering a pin code
                 log("PinSentryPlayer: No security enabled, no title available")
-                return
+            else:
+                log("PinSentryPlayer: No security enabled for %s" % title)
+            return
 
         # Check if we have already cached the pin number and at which level
         if PinSentry.getCachedPinLevel() >= securityLevel:

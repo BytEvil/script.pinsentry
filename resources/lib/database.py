@@ -49,7 +49,7 @@ class PinSentryDB():
             c.execute('''CREATE TABLE version (version text primary key)''')
 
             # Insert a row for the version
-            versionNum = "2"
+            versionNum = "3"
 
             # Run the statement passing in an array with one value
             c.execute("INSERT INTO version VALUES (?)", (versionNum,))
@@ -285,12 +285,17 @@ class PinSentryDB():
     def getAllMusicVideosSecurity(self):
         return self._getAllSecurityDetails("MusicVideos")
 
-    # Select all Music Video entries from the database
+    # Select all File Sources entries from the database
     def getAllFileSourcesSecurity(self):
         return self._getAllSecurityDetails("FileSources")
 
+    # Get All File Source Paths entries from the database
+    def getAllFileSourcesPathsSecurity(self):
+        # The path is stored in the ID column, so use that as the key
+        return self._getAllSecurityDetails("FileSources", keyCol=2)
+
     # Select all security details from a given table in the database
-    def _getAllSecurityDetails(self, tableName):
+    def _getAllSecurityDetails(self, tableName, keyCol=1):
         log("PinSentryDB: select all %s" % tableName)
 
         # Get a connection to the DB
@@ -314,7 +319,7 @@ class PinSentryDB():
             # row[2] - dbid
             # row[3] - Security Level
             for row in rows:
-                name = row[1]
+                name = row[keyCol]
                 resultDict[name] = row[3]
 
         conn.close()
