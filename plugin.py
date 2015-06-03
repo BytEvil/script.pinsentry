@@ -40,6 +40,7 @@ class MenuNavigator():
     TVSHOWS = 'tvshows'
     MOVIESETS = 'sets'
     PLUGINS = 'plugins'
+    MUSICVIDEOS = 'musicvideos'
 
     def __init__(self, base_url, addon_handle):
         self.base_url = base_url
@@ -72,6 +73,13 @@ class MenuNavigator():
         li.addContextMenuItems([], replaceItems=True)
         xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
 
+        # Music Videos
+        url = self._build_url({'mode': 'folder', 'foldername': MenuNavigator.MUSICVIDEOS})
+        li = xbmcgui.ListItem(__addon__.getLocalizedString(32205), iconImage=__icon__)
+        li.setProperty("Fanart_Image", __fanart__)
+        li.addContextMenuItems([], replaceItems=True)
+        xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
+
         # Plugins
         if Settings.isActivePlugins():
             url = self._build_url({'mode': 'folder', 'foldername': MenuNavigator.PLUGINS})
@@ -91,6 +99,8 @@ class MenuNavigator():
             self._setList(MenuNavigator.MOVIES, 'GetMovies', 'movieid')
         elif foldername == MenuNavigator.MOVIESETS:
             self._setList(MenuNavigator.MOVIESETS, 'GetMovieSets', 'setid')
+        elif foldername == MenuNavigator.MUSICVIDEOS:
+            self._setList(MenuNavigator.MUSICVIDEOS, 'GetMusicVideos', 'musicvideoid')
         elif foldername == MenuNavigator.PLUGINS:
             self._setList(MenuNavigator.PLUGINS)
 
@@ -171,6 +181,8 @@ class MenuNavigator():
             securityDetails = pinDB.getAllMoviesSecurity()
         elif type == MenuNavigator.MOVIESETS:
             securityDetails = pinDB.getAllMovieSetsSecurity()
+        elif type == MenuNavigator.MUSICVIDEOS:
+            securityDetails = pinDB.getAllMusicVideosSecurity()
         elif type == MenuNavigator.PLUGINS:
             securityDetails = pinDB.getAllPluginsSecurity()
 
@@ -234,6 +246,8 @@ class MenuNavigator():
                 # As well as setting the security on the Movie set, we need
                 # to also set it on each movie in the Movie Set
                 self._setSecurityOnMoviesInMovieSets(int(id), level)
+            elif type == MenuNavigator.MUSICVIDEOS:
+                pinDB.setMusicVideoSecurityLevel(title, int(id), level)
             elif type == MenuNavigator.PLUGINS:
                 pinDB.setPluginSecurityLevel(title, id, level)
             del pinDB

@@ -176,9 +176,17 @@ class PinSentryPlayer(xbmc.Player):
                 pinDB = PinSentryDB()
                 securityLevel = pinDB.getMovieSecurityLevel(title)
                 del pinDB
+
+                # If no security found for the Movie - check the Music Video
                 if securityLevel < 1:
-                    log("PinSentryPlayer: No security enabled for %s" % title)
-                    return
+                    # Now check to see if this is  music video
+                    log("PinSentryPlayer: Checking Music video for: %s" % title)
+                    pinDB = PinSentryDB()
+                    securityLevel = pinDB.getMusicVideoSecurityLevel(title)
+                    del pinDB
+                    if securityLevel < 1:
+                        log("PinSentryPlayer: No security enabled for %s" % title)
+                        return
             else:
                 # Not a TvShow or Movie - so allow the user to continue
                 # without entering a pin code
@@ -443,6 +451,11 @@ class NavigationRestrictions():
 ##################################
 if __name__ == '__main__':
     log("Starting Pin Sentry Service")
+
+    # Make sure that the database exists if this is the first time
+    pinDB = PinSentryDB()
+    pinDB.createOrUpdateDB()
+    del pinDB
 
     playerMonitor = PinSentryPlayer()
     systemMonitor = PinSentryMonitor()

@@ -21,8 +21,6 @@ class PinSentryDB():
         self.configPath = xbmc.translatePath(__addon__.getAddonInfo('profile'))
         self.databasefile = os_path_join(self.configPath, "pinsentry_database.db")
         log("PinSentryDB: Database file location = %s" % self.databasefile)
-        # Make sure that the database exists if this is the first time
-        self.createDatabase()
 
     # Removes the database if it exists
     def cleanDatabase(self):
@@ -37,7 +35,7 @@ class PinSentryDB():
                 log("PinSentryDB: No database exists: %s" % self.databasefile)
 
     # Creates the database if the file does not already exist
-    def createDatabase(self):
+    def _createDatabase(self):
         # Make sure the database does not already exist
         if not xbmcvfs.exists(self.databasefile):
             # Get a connection to the database, this will create the file
@@ -51,7 +49,7 @@ class PinSentryDB():
             c.execute('''CREATE TABLE version (version text primary key)''')
 
             # Insert a row for the version
-            versionNum = "1"
+            versionNum = "2"
 
             # Run the statement passing in an array with one value
             c.execute("INSERT INTO version VALUES (?)", (versionNum,))
@@ -65,20 +63,45 @@ class PinSentryDB():
             c.execute('''CREATE TABLE MovieSets (id integer primary key, name text unique, dbid integer unique, level integer)''')
             c.execute('''CREATE TABLE Plugins (id integer primary key, name text unique, dbid text unique, level integer)''')
 
+            # In theory this is in version 2
+            c.execute('''CREATE TABLE MusicVideos (id integer primary key, name text unique, dbid integer unique, level integer)''')
+
             # Save (commit) the changes
             conn.commit()
 
             # We can also close the connection if we are done with it.
             # Just be sure any changes have been committed or they will be lost.
             conn.close()
-# No Need to check the version, as there is only one version
-#         else:
-#             # Check if this is an upgrade
-#             conn = sqlite3.connect(self.databasefile)
-#             c = conn.cursor()
-#             c.execute('SELECT * FROM version')
-#             log("PinSentryDB: Current version number in DB is: %s" % c.fetchone()[0])
-#             conn.close()
+
+    # Creates or DB if it does not exist, or updates it if it does already exist
+    def createOrUpdateDB(self):
+        if not xbmcvfs.exists(self.databasefile):
+            # No database created yet - nothing to do
+            self._createDatabase()
+            return
+
+        # The database was already created, check to see if they need to be updated
+        # Check if this is an upgrade
+        conn = sqlite3.connect(self.databasefile)
+        conn.text_factory = str
+        c = conn.cursor()
+        c.execute('SELECT * FROM version')
+        currentVersion = int(c.fetchone()[0])
+        log("PinSentryDB: Current version number in DB is: %d" % currentVersion)
+
+        # If the database is at version one, add the version 2 tables
+        if currentVersion < 2:
+            log("PinSentryDB: Updating to version 2")
+            # Add the tables that were added in version 2
+            c.execute('''CREATE TABLE MusicVideos (id integer primary key, name text unique, dbid integer unique, level integer)''')
+            # Update the new version of the database
+            currentVersion = 2
+            c.execute('DELETE FROM version')
+            c.execute("INSERT INTO version VALUES (?)", (currentVersion,))
+            # Save (commit) the changes
+            conn.commit()
+
+        conn.close()
 
     # Get a connection to the current database
     def getConnection(self):
@@ -122,6 +145,15 @@ class PinSentryDB():
             self._deleteSecurityDetails("Plugins", pluginName)
         return ret
 
+    # Set the security value for a given Music Video
+    def setMusicVideoSecurityLevel(self, musicVideoName, dbid, level=1):
+        ret = -1
+        if level > 0:
+            ret = self._insertOrUpdate("MusicVideos", musicVideoName, dbid, level)
+        else:
+            self._deleteSecurityDetails("MusicVideos", musicVideoName)
+        return ret
+
     # Insert or replace an entry in the database
     def _insertOrUpdate(self, tableName, name, dbid, level=1):
         log("PinSentryDB: Adding %s %s (id:%s) at level %d" % (tableName, name, str(dbid), level))
@@ -148,7 +180,7 @@ class PinSentryDB():
         conn = self.getConnection()
         c = conn.cursor()
         # Delete any existing data from the database
-        cmd = 'delete FROM %s where name = ?' % tableName
+        cmd = 'DELETE FROM %s where name = ?' % tableName
         c.execute(cmd, (name,))
         conn.commit()
 
@@ -171,6 +203,10 @@ class PinSentryDB():
     # Get the security value for a given Plugin
     def getPluginSecurityLevel(self, pluginName):
         return self._getSecurityLevel("Plugins", pluginName)
+
+    # Get the security value for a given Music Video
+    def getMusicVideoSecurityLevel(self, musicVideoName):
+        return self._getSecurityLevel("MusicVideos", musicVideoName)
 
     # Select the security entry from the database
     def _getSecurityLevel(self, tableName, name):
@@ -213,9 +249,13 @@ class PinSentryDB():
     def getAllMovieSetsSecurity(self):
         return self._getAllSecurityDetails("MovieSets")
 
-    # Select all Movie Set entries from the database
+    # Select all Plugin entries from the database
     def getAllPluginsSecurity(self):
         return self._getAllSecurityDetails("Plugins")
+
+    # Select all Music Video entries from the database
+    def getAllMusicVideosSecurity(self):
+        return self._getAllSecurityDetails("MusicVideos")
 
     # Select all security details from a given table in the database
     def _getAllSecurityDetails(self, tableName):

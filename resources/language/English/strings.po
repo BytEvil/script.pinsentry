@@ -193,3 +193,7 @@ msgstr ""
 msgctxt "#32204"
 msgid "Plugins"
 msgstr ""
+
+msgctxt "#32205"
+msgid "Music Videos"
+msgstr ""
