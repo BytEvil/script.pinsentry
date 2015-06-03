@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 import os
+import time
 import xbmc
 import xbmcaddon
 import xbmcgui
@@ -421,16 +422,25 @@ class NavigationRestrictions():
         addonInformation = xbmc.getCondVisibility("Window.IsActive(10146)")
 
         if not addonSettings and not addonInformation:
-            self.canChangeSettings = False
-            return
-
-        # If we have already allowed the user to change settings, no need to check again
-        if self.canChangeSettings:
+            # If not looking at an info or settings page, and the time for
+            # allowed edits has ended, then reset it
+            if self.canChangeSettings > 0:
+                # If we have reached the home page, reset the timer
+                if xbmc.getCondVisibility("Window.IsVisible(home)"):
+                    self.canChangeSettings = 0
+                elif time.time() > self.canChangeSettings:
+                    self.canChangeSettings = 0
             return
 
         # Check if the addon is the PinSentry addon
         addonId = xbmc.getInfoLabel("ListItem.Property(Addon.ID)")
         if 'script.pinsentry' not in addonId:
+            self.canChangeSettings = 0
+            return
+
+        # If we have already allowed the user to change settings, no need to check again
+        # Check if we are still in the allowed time limit to edit
+        if int(time.time()) < self.canChangeSettings:
             return
 
         # Need to make sure this user has access to change the settings
@@ -453,12 +463,15 @@ class NavigationRestrictions():
         # Prompt the user for the pin, returns True if they knew it
         if PinSentry.promptUserForPin():
             log("NavigationRestrictions: Allowed access to settings")
-            self.canChangeSettings = True
-            # Open the dialogs that should be shown
-            if addonInformation:
-                # Open the addon Information dialog
-                xbmc.executebuiltin("ActivateWindow(10146)", True)
-            elif addonSettings:
+            # Allow the user 5 minutes to change the settings
+            self.canChangeSettings = int(time.time()) + 300
+
+            cmd = 'XBMC.Notification("{0}", "{1}", 10, "{2}")'.format(__addon__.getLocalizedString(32001).encode('utf-8'), __addon__.getLocalizedString(32110).encode('utf-8'), __icon__)
+            xbmc.executebuiltin(cmd)
+
+            # Open the dialogs that should be shown, we don't reopen the Information dialog
+            # as if we do the Close Dialog will not close it and the pin screen will not show correctly
+            if addonSettings:
                 # Open the addon settings dialog
                 xbmc.executebuiltin("Addon.OpenSettings(script.pinsentry)", True)
         else:

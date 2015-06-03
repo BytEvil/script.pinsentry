@@ -110,7 +110,11 @@ msgctxt "#32109"
 msgid "Incorrect number of digits entered for the pin."
 msgstr ""
 
-#empty strings from id 32110 to 32112
+msgctxt "#32110"
+msgid "Settings change permitted"
+msgstr ""
+
+#empty strings from id 32111 to 32112
 
 msgctxt "#32113"
 msgid "Clean Database"
