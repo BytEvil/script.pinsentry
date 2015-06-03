@@ -63,8 +63,11 @@ class PinSentryDB():
             c.execute('''CREATE TABLE MovieSets (id integer primary key, name text unique, dbid integer unique, level integer)''')
             c.execute('''CREATE TABLE Plugins (id integer primary key, name text unique, dbid text unique, level integer)''')
 
-            # In theory this is in version 2
+            # This is in version 2
             c.execute('''CREATE TABLE MusicVideos (id integer primary key, name text unique, dbid integer unique, level integer)''')
+
+            # This is in version 3
+            c.execute('''CREATE TABLE FileSources (id integer primary key, name text unique, dbid text unique, level integer)''')
 
             # Save (commit) the changes
             conn.commit()
@@ -96,6 +99,18 @@ class PinSentryDB():
             c.execute('''CREATE TABLE MusicVideos (id integer primary key, name text unique, dbid integer unique, level integer)''')
             # Update the new version of the database
             currentVersion = 2
+            c.execute('DELETE FROM version')
+            c.execute("INSERT INTO version VALUES (?)", (currentVersion,))
+            # Save (commit) the changes
+            conn.commit()
+
+        # If the database is at version two, add the version 3 tables
+        if currentVersion < 3:
+            log("PinSentryDB: Updating to version 3")
+            # Add the tables that were added in version 3
+            c.execute('''CREATE TABLE FileSources (id integer primary key, name text unique, dbid text unique, level integer)''')
+            # Update the new version of the database
+            currentVersion = 3
             c.execute('DELETE FROM version')
             c.execute("INSERT INTO version VALUES (?)", (currentVersion,))
             # Save (commit) the changes
@@ -154,6 +169,15 @@ class PinSentryDB():
             self._deleteSecurityDetails("MusicVideos", musicVideoName)
         return ret
 
+    # Set the security value for a given Music Video
+    def setFileSourceSecurityLevel(self, sourceName, sourcePath, level=1):
+        ret = -1
+        if level > 0:
+            ret = self._insertOrUpdate("FileSources", sourceName, sourcePath, level)
+        else:
+            self._deleteSecurityDetails("FileSources", sourceName)
+        return ret
+
     # Insert or replace an entry in the database
     def _insertOrUpdate(self, tableName, name, dbid, level=1):
         log("PinSentryDB: Adding %s %s (id:%s) at level %d" % (tableName, name, str(dbid), level))
@@ -208,6 +232,10 @@ class PinSentryDB():
     def getMusicVideoSecurityLevel(self, musicVideoName):
         return self._getSecurityLevel("MusicVideos", musicVideoName)
 
+    # Get the security value for a given File Source
+    def getFileSourceSecurityLevel(self, sourceName):
+        return self._getSecurityLevel("FileSources", sourceName)
+
     # Select the security entry from the database
     def _getSecurityLevel(self, tableName, name):
         log("PinSentryDB: select %s for %s" % (tableName, name))
@@ -256,6 +284,10 @@ class PinSentryDB():
     # Select all Music Video entries from the database
     def getAllMusicVideosSecurity(self):
         return self._getAllSecurityDetails("MusicVideos")
+
+    # Select all Music Video entries from the database
+    def getAllFileSourcesSecurity(self):
+        return self._getAllSecurityDetails("FileSources")
 
     # Select all security details from a given table in the database
     def _getAllSecurityDetails(self, tableName):

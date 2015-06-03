@@ -41,6 +41,7 @@ class MenuNavigator():
     MOVIESETS = 'sets'
     PLUGINS = 'plugins'
     MUSICVIDEOS = 'musicvideos'
+    FILESOURCE = 'filesource'
 
     def __init__(self, base_url, addon_handle):
         self.base_url = base_url
@@ -88,6 +89,13 @@ class MenuNavigator():
             li.addContextMenuItems([], replaceItems=True)
             xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
 
+        # Files
+#         url = self._build_url({'mode': 'folder', 'foldername': MenuNavigator.FILESOURCE})
+#         li = xbmcgui.ListItem(__addon__.getLocalizedString(32206), iconImage=__icon__)
+#         li.setProperty("Fanart_Image", __fanart__)
+#         li.addContextMenuItems([], replaceItems=True)
+#         xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
+
         xbmcplugin.endOfDirectory(self.addon_handle)
 
     # Show the list of videos in a given set
@@ -103,12 +111,16 @@ class MenuNavigator():
             self._setList(MenuNavigator.MUSICVIDEOS, 'GetMusicVideos', 'musicvideoid')
         elif foldername == MenuNavigator.PLUGINS:
             self._setList(MenuNavigator.PLUGINS)
+        elif foldername == MenuNavigator.FILESOURCE:
+            self._setList(MenuNavigator.FILESOURCE)
 
     # Produce the list of videos and flag which ones with security details
     def _setList(self, target, jsonGet='', dbid=''):
         items = []
         if target == MenuNavigator.PLUGINS:
             items = self._setPluginList()
+        elif target == MenuNavigator.FILESOURCE:
+            items = self._setFileSourceList()
         else:
             # Everything other plugins are forms of video
             items = self._getVideos(jsonGet, target, dbid)
@@ -185,6 +197,8 @@ class MenuNavigator():
             securityDetails = pinDB.getAllMusicVideosSecurity()
         elif type == MenuNavigator.PLUGINS:
             securityDetails = pinDB.getAllPluginsSecurity()
+        elif type == MenuNavigator.FILESOURCE:
+            securityDetails = pinDB.getAllFileSourcesSecurity()
 
         for item in items:
             # Default security to 0 (Not Set)
@@ -229,6 +243,25 @@ class MenuNavigator():
                 plugins.append(pluginDetails)
         return plugins
 
+    # get the list of plugins installed on the system
+    def _setFileSourceList(self):
+        # Make the call to find out all the addons that are installed
+        json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "Files.GetSources", "params": { "media": "video" }, "id": 1}')
+        json_query = unicode(json_query, 'utf-8', errors='ignore')
+        json_response = simplejson.loads(json_query)
+        log(json_response)
+        fileSources = []
+        if ("result" in json_response) and ('sources' in json_response['result']):
+            # Check each of the plugins that are installed on the system
+            for fileSource in json_response['result']['sources']:
+                fileDetails = {}
+                fileDetails['title'] = fileSource['label']
+                fileDetails['dbid'] = fileSource['file']
+                fileDetails['thumbnail'] = 'DefaultFolder.png'
+
+                fileSources.append(fileDetails)
+        return fileSources
+
     # Set the security value for a given video
     def setSecurity(self, type, title, id, level):
         log("Setting security for (id:%s) %s" % (id, title))
@@ -250,6 +283,8 @@ class MenuNavigator():
                 pinDB.setMusicVideoSecurityLevel(title, int(id), level)
             elif type == MenuNavigator.PLUGINS:
                 pinDB.setPluginSecurityLevel(title, id, level)
+            elif type == MenuNavigator.FILESOURCE:
+                pinDB.setFileSourceSecurityLevel(title, id, level)
             del pinDB
 
         # Now reload the screen to reflect the change
