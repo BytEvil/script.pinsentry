@@ -72,7 +72,23 @@ msgctxt "#32012"
 msgid "None"
 msgstr ""
 
-#empty strings from id 32013 to 32100
+msgctxt "#32013"
+msgid "Off"
+msgstr ""
+
+msgctxt "#32014"
+msgid "On"
+msgstr ""
+
+msgctxt "#32015"
+msgid "For Time Period"
+msgstr ""
+
+msgctxt "#32016"
+msgid "Remember Pin For (Minutes)"
+msgstr ""
+
+#empty strings from id 32017 to 32100
 
 msgctxt "#32101"
 msgid "Backspace"
@@ -141,7 +157,7 @@ msgid "End Time"
 msgstr ""
 
 msgctxt "#32119"
-msgid "Remember Pin After First Use"
+msgid "Remember Pin"
 msgstr ""
 
 msgctxt "#32120"
@@ -179,6 +195,7 @@ msgstr ""
 msgctxt "#32128"
 msgid "Plugins"
 msgstr ""
+
 
 #empty strings from id 32129 to 32200
 

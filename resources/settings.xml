@@ -18,12 +18,13 @@
 		<setting id="activityFileSource" type="bool" label="32204" default="true" />
 	</category>
 	<category label="32115">
-		<setting id="pinCachingEnabled" type="bool" label="32119" default="false" />
+		<setting id="pinCachingStatus" type="enum" label="32119" lvalues="32013|32014|32015" default="0"/>
+		<setting id="pinCachingDuration" label="32016" visible="eq(-1,2)" subsetting="true" type="slider" default="5" range="1,1,120" option="int" />
 		<setting id="background" type="enum" label="32120" lvalues="32012|32121|32122|32123" default="0"/>
 		<setting id="backgroundImage" label="32124" subsetting="true" visible="eq(-1,3)" type="image"/>
 		<setting id="timeRestrictionEnabled" type="bool" label="32116" default="false" />
-		<setting id="startTime" visible="eq(-1,true)" type="time" label="32117" default="06:00"/>
-		<setting id="endTime" visible="eq(-2,true)" type="time" label="32118" default="20:00"/>
+		<setting id="startTime" visible="eq(-1,true)" subsetting="true" type="time" label="32117" default="06:00"/>
+		<setting id="endTime" visible="eq(-2,true)" subsetting="true" type="time" label="32118" default="20:00"/>
     	<setting label="32003" type="lsep"/>
 		<setting id="logEnabled" type="bool" label="32004" default="false"/>
 	</category>

@@ -116,8 +116,20 @@ class Settings():
         return True
 
     @staticmethod
-    def isPinCachingEnabled():
-        return __addon__.getSetting("pinCachingEnabled") == 'true'
+    def getPinCachingEnabledDuration():
+        cacheDuration = 0
+        cacheSelection = int(__addon__.getSetting("pinCachingStatus"))
+        if cacheSelection == 0:
+            # Cache is off
+            cacheDuration = 0
+        elif cacheSelection == 1:
+            # Caching is on with no timeout
+            cacheDuration = -1
+        elif cacheSelection == 2:
+            # Will time-out, so get the timeout time
+            cacheDuration = int(float(__addon__.getSetting("pinCachingDuration")))
+
+        return cacheDuration
 
     @staticmethod
     def isDisplayBackground():

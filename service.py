@@ -33,6 +33,7 @@ from background import Background
 # Class to handle core Pin Sentry behaviour
 class PinSentry():
     pinLevelCached = 0
+    pinLevelCacheExpires = -1
 
     @staticmethod
     def isPinSentryEnabled():
@@ -50,13 +51,26 @@ class PinSentry():
     def setCachedPinLevel(level):
         # Check if the pin cache is enabled, if it is not then the cache level will
         # always remain at 0 (i.e. always need to enter the pin)
-        if Settings.isPinCachingEnabled():
+        # Cache duration is set to zero if disabled
+        cacheDuration = Settings.getPinCachingEnabledDuration()
+        if cacheDuration != 0:
             if PinSentry.pinLevelCached < level:
                 log("PinSentry: Updating cached pin level to %d" % level)
                 PinSentry.pinLevelCached = level
+        # Check to see if the duration expires
+        if cacheDuration > 0:
+            PinSentry.pinLevelCacheExpires = int(time.time()) + (cacheDuration * 60)
+        else:
+            PinSentry.pinLevelCacheExpires = -1
 
     @staticmethod
     def getCachedPinLevel():
+        # Check to see if the pin was only cached for a set time
+        if PinSentry.pinLevelCacheExpires > 0:
+            if int(time.time()) > PinSentry.pinLevelCacheExpires:
+                # The cached time has expired, so reset the security
+                PinSentry.pinLevelCacheExpires = -1
+                PinSentry.pinLevelCached = 0
         return PinSentry.pinLevelCached
 
     @staticmethod
