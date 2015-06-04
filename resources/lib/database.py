@@ -265,6 +265,34 @@ class PinSentryDB():
         conn.close()
         return securityLevel
 
+    # Select the security entry from the database for a given File Source Path
+    def getFileSourceSecurityLevelForPath(self, path):
+        log("PinSentryDB: select FileSources for path %s" % path)
+
+        # Get a connection to the DB
+        conn = self.getConnection()
+        c = conn.cursor()
+        # Select any existing data from the database
+        c.execute('SELECT * FROM FileSources where dbid = ?', (path,))
+        row = c.fetchone()
+
+        securityLevel = 0
+        if row is None:
+            log("PinSentryDB: No entry found in the database for %s" % path)
+            # Not stored in the database so return 0 for no pin required
+        else:
+            log("PinSentryDB: Database info: %s" % str(row))
+
+            # Return will contain
+            # row[0] - Unique Index in the DB
+            # row[1] - Name of the File Share
+            # row[2] - dbid - Path
+            # row[3] - Security Level
+            securityLevel = row[3]
+
+        conn.close()
+        return securityLevel
+
     # Select all TvShow entries from the database
     def getAllTvShowsSecurity(self):
         return self._getAllSecurityDetails("TvShows")

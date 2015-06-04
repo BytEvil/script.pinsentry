@@ -195,13 +195,9 @@ msgid "Movie Sets"
 msgstr ""
 
 msgctxt "#32204"
-msgid "Plugins"
+msgid "File Source"
 msgstr ""
 
 msgctxt "#32205"
 msgid "Music Videos"
-msgstr ""
-
-msgctxt "#32206"
-msgid "File Source"
 msgstr ""

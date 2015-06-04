@@ -183,7 +183,7 @@ class PinSentryPlayer(xbmc.Player):
                     securityLevel = pinDB.getMusicVideoSecurityLevel(title)
                     del pinDB
 
-        if securityLevel < 1:
+        if securityLevel < 1 and Settings.isActiveFileSource():
             # Get the path of the file being played
             filePath = xbmc.getInfoLabel("Player.Folderpath")
             if filePath in [None, ""]:
@@ -258,6 +258,7 @@ class NavigationRestrictions():
         self.lastMovieSetChecked = ""
         self.lastPluginChecked = ""
         self.canChangeSettings = False
+        self.lastFileSource = ""
 
     # Checks if the user has navigated to a TvShow that needs a pin
     def checkTvShows(self):
@@ -479,6 +480,58 @@ class NavigationRestrictions():
             self.canChangeSettings = False
             PinSentry.displayInvalidPinMessage()
 
+    def checkFileSources(self):
+        # Check if the user has navigated into a file source
+        navPath = xbmc.getInfoLabel("Container.FolderPath")
+
+        if navPath in [self.lastFileSource]:
+            return
+
+        if navPath in [None, ""]:
+            self.lastFileSource = ""
+            return
+
+        # Skip over the internal items, quicker than doing a lookup
+        if 'videodb://' in navPath:
+            self.lastFileSource = ""
+            return
+        if 'special://' in navPath:
+            self.lastFileSource = ""
+            return
+        if 'addons://' in navPath:
+            self.lastFileSource = ""
+            return
+        if 'musicdb://' in navPath:
+            self.lastFileSource = ""
+            return
+
+        # If we reach here we have a Movie Set that we need to check
+        log("NavigationRestrictions: Checking access to view File Source: %s" % navPath)
+        self.lastFileSource = navPath
+
+        # Check to see if the user should have access to this file path
+        pinDB = PinSentryDB()
+        securityLevel = pinDB.getFileSourceSecurityLevelForPath(navPath)
+        if securityLevel < 1:
+            log("NavigationRestrictions: No security enabled for File Source %s" % navPath)
+            return
+        del pinDB
+
+        # Check if we have already cached the pin number and at which level
+        if PinSentry.getCachedPinLevel() >= securityLevel:
+            log("NavigationRestrictions: Already cached pin at level %d, allowing access" % PinSentry.getCachedPinLevel())
+            return
+
+        # Prompt the user for the pin, returns True if they knew it
+        if PinSentry.promptUserForPin():
+            log("NavigationRestrictions: Allowed access to File Source %s" % navPath)
+        else:
+            log("NavigationRestrictions: Not allowed access to File Source %s which has security level %d" % (navPath, securityLevel))
+            # Move back to the Movie Section as they are not allowed where they are at the moment
+            xbmc.executebuiltin("ActivateWindow(Videos,sources://video/)", True)
+            self.lastFileSource = ""
+            PinSentry.displayInvalidPinMessage()
+
 
 ##################################
 # Main of the PinSentry Service
@@ -503,6 +556,8 @@ if __name__ == '__main__':
             if Settings.isActiveNavigation():
                 navRestrictions.checkTvShows()
                 navRestrictions.checkMovieSets()
+                if Settings.isActiveFileSource():
+                    navRestrictions.checkFileSources()
             # Always call the plugin check as we have to check if the user is setting
             # permissions using the PinSentry plugin
             navRestrictions.checkPlugins()
