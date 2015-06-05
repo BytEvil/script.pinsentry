@@ -163,3 +163,7 @@ class Settings():
     @staticmethod
     def isActiveFileSource():
         return __addon__.getSetting("activityFileSource") == 'true'
+
+    @staticmethod
+    def isActiveFileSourcePlaying():
+        return __addon__.getSetting("activityFileSourceNavigationOnly") != 'true'

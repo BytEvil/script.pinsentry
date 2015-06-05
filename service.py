@@ -197,7 +197,7 @@ class PinSentryPlayer(xbmc.Player):
                     securityLevel = pinDB.getMusicVideoSecurityLevel(title)
                     del pinDB
 
-        if securityLevel < 1 and Settings.isActiveFileSource():
+        if securityLevel < 1 and Settings.isActiveFileSource() and Settings.isActiveFileSourcePlaying():
             # Get the path of the file being played
             filePath = xbmc.getInfoLabel("Player.Folderpath")
             if filePath in [None, ""]:
