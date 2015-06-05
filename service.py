@@ -378,14 +378,15 @@ class NavigationRestrictions():
     def checkPlugins(self):
         navPath = xbmc.getInfoLabel("Container.FolderPath")
         if 'plugin://' not in navPath:
-            # No Plugin currently set or this is a Movie set that has already been checked
+            # No Plugin currently set
+            self.lastPluginChecked = ""
             return
 
         # Check if we are in a plugin location
         pluginName = xbmc.getInfoLabel("Container.FolderName")
 
         if pluginName in [None, "", self.lastPluginChecked]:
-            # No Plugin currently set or this is a Movie set that has already been checked
+            # No Plugin currently set or this is a Plugin that has already been checked
             return
 
         # If we reach here we have aPlugin that we need to check
