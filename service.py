@@ -488,7 +488,7 @@ class NavigationRestrictions():
             # as if we do the Close Dialog will not close it and the pin screen will not show correctly
             if addonSettings:
                 # Open the addon settings dialog
-                xbmc.executebuiltin("Addon.OpenSettings(script.pinsentry)", True)
+                xbmc.executebuiltin("Addon.OpenSettings(script.pinsentry)", False)
         else:
             log("NavigationRestrictions: Not allowed access to settings which has security level %d" % securityLevel)
             self.canChangeSettings = False

@@ -311,6 +311,11 @@ class MenuNavigator():
 # Main of the PinSentry Plugin
 ################################
 if __name__ == '__main__':
+    # If we have been called from the settings screen make sure that all the
+    # dialogs (like the Addon Information Dialog) are closed
+    if xbmc.getCondVisibility("Window.IsActive(10146)"):
+        xbmc.executebuiltin("Dialog.Close(all, true)", True)
+
     # Get all the arguments
     base_url = sys.argv[0]
     addon_handle = int(sys.argv[1])
