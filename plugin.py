@@ -288,9 +288,6 @@ class MenuNavigator():
                 pinDB.setFileSourceSecurityLevel(title, id, level)
             del pinDB
 
-        # Now reload the screen to reflect the change
-        xbmc.executebuiltin("Container.Refresh")
-
     # Sets the security details on all the Movies in a given Movie Set
     def _setSecurityOnMoviesInMovieSets(self, setid, level):
         log("Setting security for movies in movie set %d" % setid)
