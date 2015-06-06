@@ -21,6 +21,8 @@ class PinSentryDB():
         self.configPath = xbmc.translatePath(__addon__.getAddonInfo('profile'))
         self.databasefile = os_path_join(self.configPath, "pinsentry_database.db")
         log("PinSentryDB: Database file location = %s" % self.databasefile)
+        # Check to make sure the DB has been created
+        self._createDatabase()
 
     # Removes the database if it exists
     def cleanDatabase(self):
