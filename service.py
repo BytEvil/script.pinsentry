@@ -26,8 +26,8 @@ from background import Background
 
 # Feature Options:
 # Different Pins for different priorities (one a subset of the next)
-# Restrictions based on certificate/classification (G, PG, PG-13, R, NC-17)
 # Option to have different passwords without the numbers (Remote with no numbers?)
+# Cleanup database of removed library items (when screensaver starts)
 
 
 # Class to handle core Pin Sentry behaviour
@@ -154,6 +154,7 @@ class PinSentryPlayer(xbmc.Player):
         if not PinSentry.isPinSentryEnabled():
             return
 
+        isTvShow = False
         # Get the information for what is currently playing
         # http://kodi.wiki/view/InfoLabels#Video_player
         title = xbmc.getInfoLabel("VideoPlayer.TVShowTitle")
@@ -162,15 +163,10 @@ class PinSentryPlayer(xbmc.Player):
         if title in [None, ""]:
             title = xbmc.getInfoLabel("ListItem.TVShowTitle")
 
-#         cert = xbmc.getInfoLabel("VideoPlayer.mpaa")
-#         listmpaa = xbmc.getInfoLabel("ListItem.Mpaa")
-
-#         log("*** ROB ***: VideoPlayer.mpaa: %s" % str(cert))
-#         log("*** ROB ***: ListItem.Mpaa: %s" % str(listmpaa))
-
         securityLevel = 0
         # If it is a TvShow, then check to see if it is enabled for this one
         if title not in [None, ""]:
+            isTvShow = True
             log("PinSentryPlayer: TVShowTitle: %s" % title)
             pinDB = PinSentryDB()
             securityLevel = pinDB.getTvShowSecurityLevel(title)
@@ -218,6 +214,23 @@ class PinSentryPlayer(xbmc.Player):
                 if key in filePath:
                     securityLevel = securityDetails[key]
                     log("PinSentryPlayer: Setting path based security to %d" % securityLevel)
+
+        # Now check to see if this item has a certificate restriction
+        if securityLevel < 1:
+            cert = xbmc.getInfoLabel("VideoPlayer.mpaa")
+            if cert in [None, ""]:
+                cert = xbmc.getInfoLabel("ListItem.Mpaa")
+
+            if cert not in [None, ""]:
+                log("PinSentryPlayer: Checking for certification restrictions: %s" % str(cert))
+                pinDB = PinSentryDB()
+                if isTvShow:
+                    # Look up the TV Shows Certificate to see if it is restricted
+                    securityLevel = pinDB.getTvClassificationSecurityLevel(cert)
+                else:
+                    # Look up the Movies Certificate to see if it is restricted
+                    securityLevel = pinDB.getMovieClassificationSecurityLevel(cert)
+                del pinDB
 
         # Check if security has been set on this item
         if securityLevel < 1:

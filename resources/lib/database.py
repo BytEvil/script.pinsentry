@@ -51,7 +51,7 @@ class PinSentryDB():
             c.execute('''CREATE TABLE version (version text primary key)''')
 
             # Insert a row for the version
-            versionNum = "3"
+            versionNum = "4"
 
             # Run the statement passing in an array with one value
             c.execute("INSERT INTO version VALUES (?)", (versionNum,))
@@ -70,6 +70,10 @@ class PinSentryDB():
 
             # This is in version 3
             c.execute('''CREATE TABLE FileSources (id integer primary key, name text unique, dbid text unique, level integer)''')
+
+            # This is in version 4
+            c.execute('''CREATE TABLE ClassificationsMovies (id integer primary key, name text unique, dbid text, level integer)''')
+            c.execute('''CREATE TABLE ClassificationsTV (id integer primary key, name text unique, dbid text, level integer)''')
 
             # Save (commit) the changes
             conn.commit()
@@ -113,6 +117,19 @@ class PinSentryDB():
             c.execute('''CREATE TABLE FileSources (id integer primary key, name text unique, dbid text unique, level integer)''')
             # Update the new version of the database
             currentVersion = 3
+            c.execute('DELETE FROM version')
+            c.execute("INSERT INTO version VALUES (?)", (currentVersion,))
+            # Save (commit) the changes
+            conn.commit()
+
+        # If the database is at version three, add the version 4 tables
+        if currentVersion < 4:
+            log("PinSentryDB: Updating to version 4")
+            # Add the tables that were added in version 3
+            c.execute('''CREATE TABLE ClassificationsMovies (id integer primary key, name text unique, dbid text, level integer)''')
+            c.execute('''CREATE TABLE ClassificationsTV (id integer primary key, name text unique, dbid text, level integer)''')
+            # Update the new version of the database
+            currentVersion = 4
             c.execute('DELETE FROM version')
             c.execute("INSERT INTO version VALUES (?)", (currentVersion,))
             # Save (commit) the changes
@@ -171,13 +188,31 @@ class PinSentryDB():
             self._deleteSecurityDetails("MusicVideos", musicVideoName)
         return ret
 
-    # Set the security value for a given Music Video
+    # Set the security value for a given File Source
     def setFileSourceSecurityLevel(self, sourceName, sourcePath, level=1):
         ret = -1
         if level > 0:
             ret = self._insertOrUpdate("FileSources", sourceName, sourcePath, level)
         else:
             self._deleteSecurityDetails("FileSources", sourceName)
+        return ret
+
+    # Set the security value for a given Movie Classification
+    def setMovieClassificationSecurityLevel(self, id, match, level=1):
+        ret = -1
+        if level > 0:
+            ret = self._insertOrUpdate("ClassificationsMovies", id, match, level)
+        else:
+            self._deleteSecurityDetails("ClassificationsMovies", id)
+        return ret
+
+    # Set the security value for a given TV Classification
+    def setTvClassificationSecurityLevel(self, id, match, level=1):
+        ret = -1
+        if level > 0:
+            ret = self._insertOrUpdate("ClassificationsTV", id, match, level)
+        else:
+            self._deleteSecurityDetails("ClassificationsTV", id)
         return ret
 
     # Insert or replace an entry in the database
@@ -238,15 +273,27 @@ class PinSentryDB():
     def getFileSourceSecurityLevel(self, sourceName):
         return self._getSecurityLevel("FileSources", sourceName)
 
+    # Select the security entry from the database for a given File Source Path
+    def getFileSourceSecurityLevelForPath(self, path):
+        return self._getSecurityLevel("FileSources", path, 'dbid')
+
+    # Get the security value for a given Movie Classification
+    def getMovieClassificationSecurityLevel(self, className):
+        return self._getSecurityLevel("ClassificationsMovies", className, 'dbid')
+
+    # Get the security value for a given TV Classification
+    def getTvClassificationSecurityLevel(self, className):
+        return self._getSecurityLevel("ClassificationsTV", className, 'dbid')
+
     # Select the security entry from the database
-    def _getSecurityLevel(self, tableName, name):
-        log("PinSentryDB: select %s for %s" % (tableName, name))
+    def _getSecurityLevel(self, tableName, name, dbField='name'):
+        log("PinSentryDB: select %s for %s (dbField=%s)" % (tableName, name, dbField))
 
         # Get a connection to the DB
         conn = self.getConnection()
         c = conn.cursor()
         # Select any existing data from the database
-        cmd = 'SELECT * FROM %s where name = ?' % tableName
+        cmd = 'SELECT * FROM %s where %s = ?' % (tableName, dbField)
         c.execute(cmd, (name,))
         row = c.fetchone()
 
@@ -261,34 +308,6 @@ class PinSentryDB():
             # row[0] - Unique Index in the DB
             # row[1] - Name of the TvShow/Movie/MovieSet
             # row[2] - dbid
-            # row[3] - Security Level
-            securityLevel = row[3]
-
-        conn.close()
-        return securityLevel
-
-    # Select the security entry from the database for a given File Source Path
-    def getFileSourceSecurityLevelForPath(self, path):
-        log("PinSentryDB: select FileSources for path %s" % path)
-
-        # Get a connection to the DB
-        conn = self.getConnection()
-        c = conn.cursor()
-        # Select any existing data from the database
-        c.execute('SELECT * FROM FileSources where dbid = ?', (path,))
-        row = c.fetchone()
-
-        securityLevel = 0
-        if row is None:
-            log("PinSentryDB: No entry found in the database for %s" % path)
-            # Not stored in the database so return 0 for no pin required
-        else:
-            log("PinSentryDB: Database info: %s" % str(row))
-
-            # Return will contain
-            # row[0] - Unique Index in the DB
-            # row[1] - Name of the File Share
-            # row[2] - dbid - Path
             # row[3] - Security Level
             securityLevel = row[3]
 
@@ -323,6 +342,14 @@ class PinSentryDB():
     def getAllFileSourcesPathsSecurity(self):
         # The path is stored in the ID column, so use that as the key
         return self._getAllSecurityDetails("FileSources", keyCol=2)
+
+    # Get All Movie Classification entries from the database
+    def getAllMovieClassificationSecurity(self):
+        return self._getAllSecurityDetails("ClassificationsMovies")
+
+    # Get All TV Classification entries from the database
+    def getAllTvClassificationSecurity(self):
+        return self._getAllSecurityDetails("ClassificationsTV")
 
     # Select all security details from a given table in the database
     def _getAllSecurityDetails(self, tableName, keyCol=1):

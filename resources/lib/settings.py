@@ -42,6 +42,29 @@ class Settings():
     INVALID_PIN_NOTIFICATION_DIALOG = 1
     INVALID_PIN_NOTIFICATION_NONE = 2
 
+    # http://en.wikipedia.org/wiki/Motion_picture_rating_system
+    movieCassificationsNames = [{'id': 1, 'name': 'UK - U', 'match': 'Rated U'},
+                                {'id': 2, 'name': 'UK - PG', 'match': 'Rated PG'},
+                                {'id': 3, 'name': 'UK - 12A', 'match': 'Rated 12A'},
+                                {'id': 4, 'name': 'UK - 12', 'match': 'Rated 12'},
+                                {'id': 5, 'name': 'UK - 15', 'match': 'Rated 15'},
+                                {'id': 6, 'name': 'UK - 18', 'match': 'Rated 18'},
+                                {'id': 7, 'name': 'UK - R18', 'match': 'Rated R18'},
+                                {'id': 8, 'name': 'USA - G', 'match': 'Rated G'},
+                                {'id': 9, 'name': 'USA - PG', 'match': 'Rated PG'},
+                                {'id': 10, 'name': 'USA - PG-13', 'match': 'Rated PG-13'},
+                                {'id': 11, 'name': 'USA - R', 'match': 'Rated R'},
+                                {'id': 12, 'name': 'USA - NC-17', 'match': 'Rated NC-17'}]
+
+    # http://en.wikipedia.org/wiki/Television_content_rating_systems
+    tvCassificationsNames = [{'id': 1, 'name': 'USA - TV-Y', 'match': 'TV-Y'},
+                             {'id': 2, 'name': 'USA - TV-Y7', 'match': 'TV-Y7'},
+                             {'id': 3, 'name': 'USA - TV-Y7-FV', 'match': 'TV-Y7-FV'},
+                             {'id': 4, 'name': 'USA - TV-G', 'match': 'TV-G'},
+                             {'id': 5, 'name': 'USA - TV-PG', 'match': 'TV-PG'},
+                             {'id': 6, 'name': 'USA - TV-14', 'match': 'TV-14'},
+                             {'id': 7, 'name': 'USA - TV-MA', 'match': 'TV-MA'}]
+
     @staticmethod
     def reloadSettings():
         # Force the reload of the settings to pick up any new values

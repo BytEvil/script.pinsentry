@@ -222,3 +222,16 @@ msgstr ""
 msgctxt "#32205"
 msgid "Music Videos"
 msgstr ""
+
+msgctxt "#32206"
+msgid "Classifications"
+msgstr ""
+
+msgctxt "#32207"
+msgid "Movie Classifications"
+msgstr ""
+
+msgctxt "#32208"
+msgid "TV Classifications"
+msgstr ""
+
