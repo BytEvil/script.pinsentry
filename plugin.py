@@ -178,7 +178,12 @@ class MenuNavigator():
         if ("result" in json_response) and (target in json_response['result']):
             for item in json_response['result'][target]:
                 videoItem = {}
-                videoItem['title'] = item['title']
+
+                try:
+                    videoItem['title'] = item['title'].encode("utf-8")
+                except:
+                    log("setVideoList: Failed to encode title %s" % title)
+                    videoItem['title'] = item['title']
 
                 if item['thumbnail'] is None:
                     videoItem['thumbnail'] = 'DefaultFolder.png'
