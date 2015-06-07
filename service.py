@@ -223,7 +223,7 @@ class PinSentryPlayer(xbmc.Player):
 
             if cert not in [None, ""]:
                 log("PinSentryPlayer: Checking for certification restrictions: %s" % str(cert))
-                cert = cert.replace('Rated ','', 1).strip()
+                cert = cert.replace('Rated ', '', 1).strip()
                 pinDB = PinSentryDB()
                 if isTvShow:
                     # Look up the TV Shows Certificate to see if it is restricted
