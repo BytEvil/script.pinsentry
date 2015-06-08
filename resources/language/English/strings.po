@@ -134,7 +134,7 @@ msgctxt "#32111"
 msgid "Only Restrict File Sources During Navigation"
 msgstr ""
 
-#empty strings from id 32112 to 32112
+#empty string with id 32112
 
 msgctxt "#32113"
 msgid "Clean Database"
@@ -200,7 +200,6 @@ msgctxt "#32128"
 msgid "Plugins"
 msgstr ""
 
-
 #empty strings from id 32129 to 32200
 
 msgctxt "#32201"
@@ -234,4 +233,3 @@ msgstr ""
 msgctxt "#32208"
 msgid "TV Classifications"
 msgstr ""
-
