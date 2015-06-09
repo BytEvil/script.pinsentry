@@ -54,7 +54,12 @@ class Settings():
                                 {'id': 9, 'name': 'USA - PG', 'match': 'PG'},
                                 {'id': 10, 'name': 'USA - PG-13', 'match': 'PG-13'},
                                 {'id': 11, 'name': 'USA - R', 'match': 'R'},
-                                {'id': 12, 'name': 'USA - NC-17', 'match': 'NC-17'}]
+                                {'id': 12, 'name': 'USA - NC-17', 'match': 'NC-17'},
+                                {'id': 13, 'name': 'Germany - FSK 0', 'match': '0'},
+                                {'id': 14, 'name': 'Germany - FSK 6', 'match': '6'},
+                                {'id': 15, 'name': 'Germany - FSK 12', 'match': '12'},
+                                {'id': 16, 'name': 'Germany - FSK 16', 'match': '16'},
+                                {'id': 17, 'name': 'Germany - FSK 18', 'match': '18'}]
 
     # http://en.wikipedia.org/wiki/Television_content_rating_systems
     tvCassificationsNames = [{'id': 1, 'name': 'USA - TV-Y', 'match': 'TV-Y'},
