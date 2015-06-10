@@ -1,5 +1,6 @@
 v1.0.1
 - Add German Classification Ratings
+- Add default behaviour for unsupported certifications
 
 v1.0.0
 - Initial Version

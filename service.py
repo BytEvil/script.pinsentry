@@ -234,6 +234,16 @@ class PinSentryPlayer(xbmc.Player):
                     securityLevel = pinDB.getMovieClassificationSecurityLevel(cert)
                 del pinDB
 
+            # If we have still not set security yet, check to make sure that the classification was actually
+            # one of our supported types
+            if securityLevel < 1:
+                if isTvShow and (not Settings.isSupportedTvShowClassification(cert)):
+                    securityLevel = Settings.getDefaultTvShowsWithoutClassification()
+                    log("PinSentryPlayer: Setting TV Show to level %d as there is no valid MPAA value" % securityLevel)
+                elif (not isTvShow) and (not Settings.isSupportedMovieClassification(cert)):
+                    securityLevel = Settings.getDefaultMoviesWithoutClassification()
+                    log("PinSentryPlayer: Setting Movie to level %d as there is no valid MPAA value" % securityLevel)
+
         # Check if security has been set on this item
         if securityLevel < 1:
             if title in [None, ""]:

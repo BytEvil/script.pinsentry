@@ -17,6 +17,8 @@
 		<setting id="activityPlugins" type="bool" label="32128" default="true" />
 		<setting id="activityFileSource" type="bool" label="32204" default="true" />
 		<setting id="activityFileSourceNavigationOnly" type="bool" subsetting="true" visible="eq(-1,true)" enable="eq(-3,true)" label="32111" default="false" />
+		<setting id="defaultMoviesWithoutClassification" type="enum" label="32017" lvalues="32013|32014" default="0" />
+		<setting id="defaultTvShowsWithoutClassification" type="enum" label="32018" lvalues="32013|32014" default="0" />
 	</category>
 	<category label="32115">
 		<setting id="pinCachingStatus" type="enum" label="32119" lvalues="32013|32014|32015" default="0"/>

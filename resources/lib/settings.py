@@ -197,3 +197,31 @@ class Settings():
     @staticmethod
     def isActiveFileSourcePlaying():
         return __addon__.getSetting("activityFileSourceNavigationOnly") != 'true'
+
+    @staticmethod
+    def isSupportedMovieClassification(classification):
+        for classification in Settings.movieCassificationsNames:
+            if classification == classification['match']:
+                return True
+        return False
+
+    @staticmethod
+    def isSupportedTvShowClassification(classification):
+        for classification in Settings.tvCassificationsNames:
+            if classification == classification['match']:
+                return True
+        return False
+
+    @staticmethod
+    def getDefaultMoviesWithoutClassification():
+        securityValue = 0
+        if __addon__.getSetting("defaultMoviesWithoutClassification") != '0':
+            securityValue = 1
+        return securityValue
+
+    @staticmethod
+    def getDefaultTvShowsWithoutClassification():
+        securityValue = 0
+        if __addon__.getSetting("defaultTvShowsWithoutClassification") != '0':
+            securityValue = 1
+        return securityValue
