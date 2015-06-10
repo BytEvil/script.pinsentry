@@ -29,6 +29,7 @@ sys.path.append(__lib__)
 # Import the common settings
 from settings import Settings
 from settings import log
+from settings import os_path_join
 from database import PinSentryDB
 
 
@@ -160,11 +161,14 @@ class MenuNavigator():
             # Add a tick if security is set
             if item['securityLevel'] > 0:
                 li.setInfo('video', {'PlayCount': 1})
+                # Not the best display format - but the only way that I can get a number to display
+                # In the list, the problem is it will display 01:00 - but at least it's something
+#                li.setInfo('video', {'Duration': 1})
                 # Next time the item is selected, it will be disabled
                 newSecurityLevel = 0
 
             url = self._build_url({'mode': 'setsecurity', 'level': newSecurityLevel, 'type': target, 'title': title, 'id': item['dbid']})
-            xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
+            xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=False)
 
         xbmcplugin.endOfDirectory(self.addon_handle)
 
@@ -312,6 +316,10 @@ class MenuNavigator():
             li.addContextMenuItems([], replaceItems=True)
             xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
         else:
+            # Get the root location of the icons
+            iconLocation = os_path_join(__resource__, 'media')
+            iconLocation = os_path_join(iconLocation, 'classifications')
+
             for classification in classifications:
                 idStr = str(classification['id'])
                 securityLevel = 0
@@ -319,7 +327,12 @@ class MenuNavigator():
                     securityLevel = securityDetails[idStr]
                     log("Classification %s has security level %d" % (classification['name'], securityLevel))
 
-                li = xbmcgui.ListItem(classification['name'], iconImage=__icon__)
+                # Set the icon to the certificate one if available
+                iconImage = __icon__
+                if classification['icon'] not in [None, ""]:
+                    iconImage = os_path_join(iconLocation, classification['icon'])
+
+                li = xbmcgui.ListItem(classification['name'], iconImage=iconImage)
 
                 # Record what the new security level will be is selected
                 newSecurityLevel = 1
@@ -332,7 +345,7 @@ class MenuNavigator():
                 li.setProperty("Fanart_Image", __fanart__)
                 li.addContextMenuItems([], replaceItems=True)
                 url = self._build_url({'mode': 'setsecurity', 'type': subType, 'id': classification['id'], 'title': classification['match'], 'level': newSecurityLevel})
-                xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
+                xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=False)
 
         xbmcplugin.endOfDirectory(self.addon_handle)
 
@@ -364,6 +377,8 @@ class MenuNavigator():
             elif type == MenuNavigator.CLASSIFICATIONS_TV:
                 pinDB.setTvClassificationSecurityLevel(id, title, level)
             del pinDB
+
+            xbmc.executebuiltin("Container.Refresh")
 
     # Sets the security details on all the Movies in a given Movie Set
     def _setSecurityOnMoviesInMovieSets(self, setid, level):
