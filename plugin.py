@@ -167,6 +167,7 @@ class MenuNavigator():
                 # Next time the item is selected, it will be disabled
                 newSecurityLevel = 0
 
+            li.setProperty("Fanart_Image", item['fanart'])
             url = self._build_url({'mode': 'setsecurity', 'level': newSecurityLevel, 'type': target, 'title': title, 'id': item['dbid']})
             xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=False)
 
@@ -189,11 +190,15 @@ class MenuNavigator():
                     log("setVideoList: Failed to encode title %s" % title)
                     videoItem['title'] = item['title']
 
-                if item['thumbnail'] is None:
+                if item['thumbnail'] in [None, ""]:
                     videoItem['thumbnail'] = 'DefaultFolder.png'
                 else:
                     videoItem['thumbnail'] = item['thumbnail']
-                videoItem['fanart'] = item['fanart']
+
+                if item['fanart'] in [None, ""]:
+                    videoItem['fanart'] = __fanart__
+                else:
+                    videoItem['fanart'] = item['fanart']
 
                 videoItem['dbid'] = item[dbid]
 
@@ -257,11 +262,15 @@ class MenuNavigator():
                 pluginDetails['title'] = addonItem['name']
                 pluginDetails['dbid'] = addonId
 
-                if addonItem['thumbnail'] is None:
+                if addonItem['thumbnail'] in [None, ""]:
                     pluginDetails['thumbnail'] = 'DefaultAddon.png'
                 else:
                     pluginDetails['thumbnail'] = addonItem['thumbnail']
-                pluginDetails['fanart'] = addonItem['fanart']
+
+                if addonItem['fanart'] in [None, ""]:
+                    pluginDetails['fanart'] = __fanart__
+                else:
+                    pluginDetails['fanart'] = addonItem['fanart']
 
                 plugins.append(pluginDetails)
         return plugins
@@ -281,6 +290,7 @@ class MenuNavigator():
                 fileDetails['title'] = fileSource['label']
                 fileDetails['dbid'] = fileSource['file']
                 fileDetails['thumbnail'] = 'DefaultFolder.png'
+                fileDetails['fanart'] = __fanart__
 
                 fileSources.append(fileDetails)
         return fileSources
