@@ -224,7 +224,10 @@ class PinSentryPlayer(xbmc.Player):
 
             if cert not in [None, ""]:
                 log("PinSentryPlayer: Checking for certification restrictions: %s" % str(cert))
-                cert = cert.replace('Rated ', '', 1).strip()
+                # Now split based on a colon and spaces, we only want the last bit of the
+                # MPAA setting as the first bit can change based on scraper
+                cert = cert.strip().split(':')[-1]
+                cert = cert.strip().split()[-1]
                 pinDB = PinSentryDB()
                 if isTvShow:
                     # Look up the TV Shows Certificate to see if it is restricted
