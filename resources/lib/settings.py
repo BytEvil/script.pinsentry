@@ -43,19 +43,19 @@ class Settings():
     INVALID_PIN_NOTIFICATION_NONE = 2
 
     # http://en.wikipedia.org/wiki/Motion_picture_rating_system
-    movieCassificationsNames = [{'id': 1, 'name': '%s - U' % __addon__.getLocalizedString(32301), 'match': 'U', 'icon': None},  # UK
-                                {'id': 2, 'name': '%s - PG' % __addon__.getLocalizedString(32301), 'match': 'PG', 'icon': None},
-                                {'id': 3, 'name': '%s - 12A' % __addon__.getLocalizedString(32301), 'match': '12A', 'icon': None},
-                                {'id': 4, 'name': '%s - 12' % __addon__.getLocalizedString(32301), 'match': '12', 'icon': None},
-                                {'id': 5, 'name': '%s - 15' % __addon__.getLocalizedString(32301), 'match': '15', 'icon': None},
-                                {'id': 6, 'name': '%s - 18' % __addon__.getLocalizedString(32301), 'match': '18', 'icon': None},
-                                {'id': 7, 'name': '%s - R18' % __addon__.getLocalizedString(32301), 'match': 'R18', 'icon': None},
+    movieCassificationsNames = [{'id': 1, 'name': '%s - U' % __addon__.getLocalizedString(32301), 'match': 'U', 'icon': 'UK-U.png'},  # UK
+                                {'id': 2, 'name': '%s - PG' % __addon__.getLocalizedString(32301), 'match': 'PG', 'icon': 'UK-PG.png'},
+                                {'id': 3, 'name': '%s - 12A' % __addon__.getLocalizedString(32301), 'match': '12A', 'icon': 'UK-12A.png'},
+                                {'id': 4, 'name': '%s - 12' % __addon__.getLocalizedString(32301), 'match': '12', 'icon': 'UK-12.png'},
+                                {'id': 5, 'name': '%s - 15' % __addon__.getLocalizedString(32301), 'match': '15', 'icon': 'UK-15.png'},
+                                {'id': 6, 'name': '%s - 18' % __addon__.getLocalizedString(32301), 'match': '18', 'icon': 'UK-18.png'},
+                                {'id': 7, 'name': '%s - R18' % __addon__.getLocalizedString(32301), 'match': 'R18', 'icon': 'UK-R18.png'},
                                 # USA
-                                {'id': 8, 'name': '%s - G' % __addon__.getLocalizedString(32302), 'match': 'G', 'icon': None},
-                                {'id': 9, 'name': '%s - PG' % __addon__.getLocalizedString(32302), 'match': 'PG', 'icon': None},
-                                {'id': 10, 'name': '%s - PG-13' % __addon__.getLocalizedString(32302), 'match': 'PG-13', 'icon': None},
-                                {'id': 11, 'name': '%s - R' % __addon__.getLocalizedString(32302), 'match': 'R', 'icon': None},
-                                {'id': 12, 'name': '%s - NC-17' % __addon__.getLocalizedString(32302), 'match': 'NC-17', 'icon': None},
+                                {'id': 8, 'name': '%s - G' % __addon__.getLocalizedString(32302), 'match': 'G', 'icon': 'USA-G.png'},
+                                {'id': 9, 'name': '%s - PG' % __addon__.getLocalizedString(32302), 'match': 'PG', 'icon': 'USA-PG.png'},
+                                {'id': 10, 'name': '%s - PG-13' % __addon__.getLocalizedString(32302), 'match': 'PG-13', 'icon': 'USA-PG-13.png'},
+                                {'id': 11, 'name': '%s - R' % __addon__.getLocalizedString(32302), 'match': 'R', 'icon': 'USA-R.png'},
+                                {'id': 12, 'name': '%s - NC-17' % __addon__.getLocalizedString(32302), 'match': 'NC-17', 'icon': 'USA-NC-17.png'},
                                 # Germany
                                 {'id': 13, 'name': '%s - FSK 0' % __addon__.getLocalizedString(32303), 'match': '0', 'icon': 'Germany-FSK-0.png'},
                                 {'id': 14, 'name': '%s - FSK 6' % __addon__.getLocalizedString(32303), 'match': '6', 'icon': 'Germany-FSK-6.png'},
@@ -64,13 +64,12 @@ class Settings():
                                 {'id': 17, 'name': '%s - FSK 18' % __addon__.getLocalizedString(32303), 'match': '18', 'icon': 'Germany-FSK-18.png'}]
 
     # http://en.wikipedia.org/wiki/Television_content_rating_systems
-    tvCassificationsNames = [{'id': 1, 'name': '%s - TV-Y' % __addon__.getLocalizedString(32302), 'match': 'TV-Y', 'icon': None},  # USA
-                             {'id': 2, 'name': '%s - TV-Y7' % __addon__.getLocalizedString(32302), 'match': 'TV-Y7', 'icon': None},
-                             {'id': 3, 'name': '%s - TV-Y7-FV' % __addon__.getLocalizedString(32302), 'match': 'TV-Y7-FV', 'icon': None},
-                             {'id': 4, 'name': '%s - TV-G' % __addon__.getLocalizedString(32302), 'match': 'TV-G', 'icon': None},
-                             {'id': 5, 'name': '%s - TV-PG' % __addon__.getLocalizedString(32302), 'match': 'TV-PG', 'icon': None},
-                             {'id': 6, 'name': '%s - TV-14' % __addon__.getLocalizedString(32302), 'match': 'TV-14', 'icon': None},
-                             {'id': 7, 'name': '%s - TV-MA' % __addon__.getLocalizedString(32302), 'match': 'TV-MA', 'icon': None}]
+    tvCassificationsNames = [{'id': 1, 'name': '%s - TV-Y' % __addon__.getLocalizedString(32302), 'match': 'TV-Y', 'icon': 'USA-TV-Y.png'},  # USA
+                             {'id': 2, 'name': '%s - TV-Y7' % __addon__.getLocalizedString(32302), 'match': 'TV-Y7', 'icon': 'USA-TV-Y7.png'},
+                             {'id': 3, 'name': '%s - TV-G' % __addon__.getLocalizedString(32302), 'match': 'TV-G', 'icon': 'USA-TV-G.png'},
+                             {'id': 4, 'name': '%s - TV-PG' % __addon__.getLocalizedString(32302), 'match': 'TV-PG', 'icon': 'USA-TV-PG.png'},
+                             {'id': 5, 'name': '%s - TV-14' % __addon__.getLocalizedString(32302), 'match': 'TV-14', 'icon': 'USA-TV-14.png'},
+                             {'id': 6, 'name': '%s - TV-MA' % __addon__.getLocalizedString(32302), 'match': 'TV-MA', 'icon': 'USA-TV-MA.png'}]
 
     @staticmethod
     def reloadSettings():
