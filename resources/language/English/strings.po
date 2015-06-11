@@ -242,7 +242,15 @@ msgctxt "#32208"
 msgid "TV Classifications"
 msgstr ""
 
-#empty strings from id 32209 to 32300
+msgctxt "#32209"
+msgid "Clear All Security"
+msgstr ""
+
+msgctxt "#32210"
+msgid "Apply Security To All"
+msgstr ""
+
+#empty strings from id 32211 to 32300
 
 msgctxt "#32301"
 msgid "UK"

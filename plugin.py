@@ -62,28 +62,28 @@ class MenuNavigator():
         url = self._build_url({'mode': 'folder', 'foldername': MenuNavigator.MOVIES})
         li = xbmcgui.ListItem(__addon__.getLocalizedString(32201), iconImage=__icon__)
         li.setProperty("Fanart_Image", __fanart__)
-        li.addContextMenuItems([], replaceItems=True)
+        li.addContextMenuItems(self._getContextMenu(MenuNavigator.MOVIES), replaceItems=True)
         xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
 
         # TV Shows
         url = self._build_url({'mode': 'folder', 'foldername': MenuNavigator.TVSHOWS})
         li = xbmcgui.ListItem(__addon__.getLocalizedString(32202), iconImage=__icon__)
         li.setProperty("Fanart_Image", __fanart__)
-        li.addContextMenuItems([], replaceItems=True)
+        li.addContextMenuItems(self._getContextMenu(MenuNavigator.TVSHOWS), replaceItems=True)
         xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
 
         # Movie Sets
         url = self._build_url({'mode': 'folder', 'foldername': MenuNavigator.MOVIESETS})
         li = xbmcgui.ListItem(__addon__.getLocalizedString(32203), iconImage=__icon__)
         li.setProperty("Fanart_Image", __fanart__)
-        li.addContextMenuItems([], replaceItems=True)
+        li.addContextMenuItems(self._getContextMenu(MenuNavigator.MOVIESETS), replaceItems=True)
         xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
 
         # Music Videos
         url = self._build_url({'mode': 'folder', 'foldername': MenuNavigator.MUSICVIDEOS})
         li = xbmcgui.ListItem(__addon__.getLocalizedString(32205), iconImage=__icon__)
         li.setProperty("Fanart_Image", __fanart__)
-        li.addContextMenuItems([], replaceItems=True)
+        li.addContextMenuItems(self._getContextMenu(MenuNavigator.MUSICVIDEOS), replaceItems=True)
         xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
 
         # Plugins
@@ -115,13 +115,13 @@ class MenuNavigator():
     def showFolder(self, foldername, subType=""):
         # Check for the special case of manually defined folders
         if foldername == MenuNavigator.TVSHOWS:
-            self._setList(MenuNavigator.TVSHOWS, 'GetTVShows', 'tvshowid')
+            self._setList(MenuNavigator.TVSHOWS)
         elif foldername == MenuNavigator.MOVIES:
-            self._setList(MenuNavigator.MOVIES, 'GetMovies', 'movieid')
+            self._setList(MenuNavigator.MOVIES)
         elif foldername == MenuNavigator.MOVIESETS:
-            self._setList(MenuNavigator.MOVIESETS, 'GetMovieSets', 'setid')
+            self._setList(MenuNavigator.MOVIESETS)
         elif foldername == MenuNavigator.MUSICVIDEOS:
-            self._setList(MenuNavigator.MUSICVIDEOS, 'GetMusicVideos', 'musicvideoid')
+            self._setList(MenuNavigator.MUSICVIDEOS)
         elif foldername == MenuNavigator.PLUGINS:
             self._setList(MenuNavigator.PLUGINS)
         elif foldername == MenuNavigator.FILESOURCE:
@@ -130,7 +130,7 @@ class MenuNavigator():
             self._setClassificationList(subType)
 
     # Produce the list of videos and flag which ones with security details
-    def _setList(self, target, jsonGet='', dbid=''):
+    def _setList(self, target):
         items = []
         if target == MenuNavigator.PLUGINS:
             items = self._setPluginList()
@@ -138,7 +138,7 @@ class MenuNavigator():
             items = self._setFileSourceList()
         else:
             # Everything other plugins are forms of video
-            items = self._getVideos(jsonGet, target, dbid)
+            items = self._getVideos(target)
 
         # Now add the security details to the list
         items = self._addSecurityFlags(target, items)
@@ -149,7 +149,7 @@ class MenuNavigator():
 
             # Remove the default context menu
             li.addContextMenuItems([], replaceItems=True)
-            # Get the title of the video owning the extras
+            # Get the title of the video
             title = item['title']
             try:
                 title = item['title'].encode("utf-8")
@@ -174,7 +174,19 @@ class MenuNavigator():
         xbmcplugin.endOfDirectory(self.addon_handle)
 
     # Do a lookup in the database for the given type of videos
-    def _getVideos(self, jsonGet, target, dbid):
+    def _getVideos(self, target):
+        jsonGet = 'GetMovies'
+        dbid = 'movieid'
+        if target == MenuNavigator.TVSHOWS:
+            jsonGet = 'GetTVShows'
+            dbid = 'tvshowid'
+        elif target == MenuNavigator.MOVIESETS:
+            jsonGet = 'GetMovieSets'
+            dbid = 'setid'
+        elif target == MenuNavigator.MUSICVIDEOS:
+            jsonGet = 'GetMusicVideos'
+            dbid = 'musicvideoid'
+
         json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.%s", "params": {"properties": ["title", "thumbnail", "fanart"], "sort": { "method": "title" } }, "id": 1}' % jsonGet)
         json_query = unicode(json_query, 'utf-8', errors='ignore')
         json_response = simplejson.loads(json_query)
@@ -389,6 +401,9 @@ class MenuNavigator():
             del pinDB
 
             xbmc.executebuiltin("Container.Refresh")
+        else:
+            # Handle the bulk operations like set All security for the movies
+            self._setBulkSecurity(type, level)
 
     # Sets the security details on all the Movies in a given Movie Set
     def _setSecurityOnMoviesInMovieSets(self, setid, level):
@@ -404,6 +419,38 @@ class MenuNavigator():
                     # Now set the security on the movies in the set
                     self.setSecurity(MenuNavigator.MOVIES, item['label'], item['movieid'], level)
         return
+
+    # Performs an operation on all the elements of a given type
+    def _setBulkSecurity(self, type, level):
+        # Bulk operations can take a long time, so show the busy dialog
+        xbmc.executebuiltin("ActivateWindow(busydialog)")
+
+        items = self._getVideos(type)
+        for item in items:
+            # Get the title of the video
+            title = item['title']
+            try:
+                title = item['title'].encode("utf-8")
+            except:
+                log("setBulkSecurity: Failed to encode title %s" % title)
+            self.setSecurity(type, title, item['dbid'], level)
+
+        xbmc.executebuiltin("Dialog.Close(busydialog)")
+
+    # Construct the context menu
+    def _getContextMenu(self, type):
+        ctxtMenu = []
+
+        if type in [MenuNavigator.TVSHOWS, MenuNavigator.MOVIES, MenuNavigator.MOVIESETS, MenuNavigator.MUSICVIDEOS]:
+            # Clear All Security
+            cmd = self._build_url({'mode': 'setsecurity', 'level': 0, 'type': type})
+            ctxtMenu.append((__addon__.getLocalizedString(32209), 'XBMC.RunPlugin(%s)' % cmd))
+
+            # Apply Security To All
+            cmd = self._build_url({'mode': 'setsecurity', 'level': 1, 'type': type})
+            ctxtMenu.append((__addon__.getLocalizedString(32210), 'XBMC.RunPlugin(%s)' % cmd))
+
+        return ctxtMenu
 
 
 ################################
@@ -468,7 +515,7 @@ if __name__ == '__main__':
             secLevel = 0
             if (level is not None) and (len(level) > 0):
                 secLevel = int(level[0])
-            dbid = 0
+            dbid = ""
             if (id is not None) and (len(id) > 0):
                 dbid = id[0]
 
