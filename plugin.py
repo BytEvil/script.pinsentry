@@ -295,6 +295,11 @@ class MenuNavigator():
                     cert = item['mpaa'].strip().split(':')[-1]
                     cert = cert.strip().split()[-1]
 
+                    try:
+                        cert = cert.encode("utf-8")
+                    except:
+                        log("PinSentryPlugin: Failed to encode certificate")
+
                     if cert in certValues:
                         item['mpaa'] = cert
                         log("PinSentryPlugin: Setting mpaa for %s to %s" % (item['title'], cert))

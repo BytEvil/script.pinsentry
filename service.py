@@ -154,6 +154,7 @@ class PinSentryPlayer(xbmc.Player):
         if not PinSentry.isPinSentryEnabled():
             return
 
+        isMusicVideo = False
         isTvShow = False
         # Get the information for what is currently playing
         # http://kodi.wiki/view/InfoLabels#Video_player
@@ -172,6 +173,9 @@ class PinSentryPlayer(xbmc.Player):
             securityLevel = pinDB.getTvShowSecurityLevel(title)
             del pinDB
         else:
+            # Check if the video is a music video
+            isMusicVideo = self.isMusicVideoPlaying()
+
             # Not a TvShow, so check for the Movie Title
             title = xbmc.getInfoLabel("VideoPlayer.Title")
 
@@ -180,19 +184,21 @@ class PinSentryPlayer(xbmc.Player):
                 title = xbmc.getInfoLabel("ListItem.Title")
 
             if title not in [None, ""]:
-                log("PinSentryPlayer: Title: %s" % title)
-                pinDB = PinSentryDB()
-                securityLevel = pinDB.getMovieSecurityLevel(title)
-                del pinDB
-
-                # If no security found for the Movie - check the Music Video
-                if securityLevel < 1:
+                if not isMusicVideo:
+                    # Check for a Movie
+                    log("PinSentryPlayer: Title: %s" % title)
+                    pinDB = PinSentryDB()
+                    securityLevel = pinDB.getMovieSecurityLevel(title)
+                    del pinDB
+                else:
                     # Now check to see if this is  music video
                     log("PinSentryPlayer: Checking Music video for: %s" % title)
                     pinDB = PinSentryDB()
                     securityLevel = pinDB.getMusicVideoSecurityLevel(title)
                     del pinDB
 
+        # Now perform the check that restricts if a file is in a file source
+        # that should not be played
         if securityLevel < 1 and Settings.isActiveFileSource() and Settings.isActiveFileSourcePlaying():
             # Get the path of the file being played
             filePath = xbmc.getInfoLabel("Player.Folderpath")
@@ -239,12 +245,14 @@ class PinSentryPlayer(xbmc.Player):
             # If we have still not set security yet, check to make sure that the classification was actually
             # one of our supported types
             if securityLevel < 1:
-                if isTvShow and (not Settings.isSupportedTvShowClassification(cert)):
-                    securityLevel = Settings.getDefaultTvShowsWithoutClassification()
-                    log("PinSentryPlayer: Setting TV Show to level %d as there is no valid MPAA value" % securityLevel)
-                elif (not isTvShow) and (not Settings.isSupportedMovieClassification(cert)):
-                    securityLevel = Settings.getDefaultMoviesWithoutClassification()
-                    log("PinSentryPlayer: Setting Movie to level %d as there is no valid MPAA value" % securityLevel)
+                if isTvShow:
+                    if not Settings.isSupportedTvShowClassification(cert):
+                        securityLevel = Settings.getDefaultTvShowsWithoutClassification()
+                        log("PinSentryPlayer: Setting TV Show to level %d as there is no valid MPAA value" % securityLevel)
+                elif not isMusicVideo:
+                    if not Settings.isSupportedMovieClassification(cert):
+                        securityLevel = Settings.getDefaultMoviesWithoutClassification()
+                        log("PinSentryPlayer: Setting Movie to level %d as there is no valid MPAA value" % securityLevel)
 
         # Check if security has been set on this item
         if securityLevel < 1:
@@ -290,6 +298,20 @@ class PinSentryPlayer(xbmc.Player):
             PinSentry.displayInvalidPinMessage()
 
         xbmcgui.Window(10000).clearProperty("PinSentryPrompting")
+
+    # Checks if the current item is a Music Video
+    def isMusicVideoPlaying(self):
+        if xbmc.getInfoLabel("VideoPlayer.Album") not in [None, ""]:
+            return True
+        if xbmc.getInfoLabel("VideoPlayer.Artist") not in [None, ""]:
+            return True
+        if xbmc.getInfoLabel("ListItem.Artist") not in [None, ""]:
+            return True
+        if xbmc.getInfoLabel("ListItem.AlbumArtist") not in [None, ""]:
+            return True
+        if xbmc.getInfoLabel("ListItem.Album") not in [None, ""]:
+            return True
+        return False
 
 
 # Class to handle prompting for a pin when navigating the menu's

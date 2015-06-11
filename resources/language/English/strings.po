@@ -89,7 +89,7 @@ msgid "Remember Pin For (Minutes)"
 msgstr ""
 
 msgctxt "#32017"
-msgid "Block Movies & Music Videos Without A Classification"
+msgid "Block Movies Without A Classification"
 msgstr ""
 
 msgctxt "#32018"
