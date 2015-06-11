@@ -224,3 +224,7 @@ class Settings():
         if __addon__.getSetting("defaultTvShowsWithoutClassification") != '0':
             securityValue = 1
         return securityValue
+
+    @staticmethod
+    def isHighlightClassificationUnprotectedVideos():
+        return __addon__.getSetting("highlightClassificationUnprotectedVideos") == 'true'

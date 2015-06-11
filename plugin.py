@@ -142,6 +142,8 @@ class MenuNavigator():
 
         # Now add the security details to the list
         items = self._addSecurityFlags(target, items)
+        # Update the classifications
+        items = self._cleanClassification(target, items)
 
         for item in items:
             # Create the list-item for this video
@@ -166,6 +168,13 @@ class MenuNavigator():
 #                li.setInfo('video', {'Duration': 1})
                 # Next time the item is selected, it will be disabled
                 newSecurityLevel = 0
+            elif Settings.isHighlightClassificationUnprotectedVideos():
+                # If the user wishes to see which files are not protected by one of the rules
+                # currently applied, we put the play signal next to them
+                if 'mpaa' in item:
+                    if item['mpaa'] in [None, ""]:
+                        li.setProperty("TotalTime", "")
+                        li.setProperty("ResumeTime", "1")
 
             li.setProperty("Fanart_Image", item['fanart'])
             url = self._build_url({'mode': 'setsecurity', 'level': newSecurityLevel, 'type': target, 'title': title, 'id': item['dbid']})
@@ -177,17 +186,20 @@ class MenuNavigator():
     def _getVideos(self, target):
         jsonGet = 'GetMovies'
         dbid = 'movieid'
+        extraDetails = ', "mpaa"'
         if target == MenuNavigator.TVSHOWS:
             jsonGet = 'GetTVShows'
             dbid = 'tvshowid'
         elif target == MenuNavigator.MOVIESETS:
             jsonGet = 'GetMovieSets'
             dbid = 'setid'
+            extraDetails = ""
         elif target == MenuNavigator.MUSICVIDEOS:
             jsonGet = 'GetMusicVideos'
             dbid = 'musicvideoid'
+            extraDetails = ""
 
-        json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.%s", "params": {"properties": ["title", "thumbnail", "fanart"], "sort": { "method": "title" } }, "id": 1}' % jsonGet)
+        json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.%s", "params": {"properties": ["title", "thumbnail", "fanart"%s], "sort": { "method": "title" } }, "id": 1}' % (jsonGet, extraDetails))
         json_query = unicode(json_query, 'utf-8', errors='ignore')
         json_response = simplejson.loads(json_query)
         log(json_response)
@@ -213,6 +225,8 @@ class MenuNavigator():
                     videoItem['fanart'] = item['fanart']
 
                 videoItem['dbid'] = item[dbid]
+                if 'mpaa' in item:
+                    videoItem['mpaa'] = item['mpaa']
 
                 videolist.append(videoItem)
         return videolist
@@ -246,11 +260,47 @@ class MenuNavigator():
             if item['title'] in securityDetails:
                 title = item['title']
                 securityLevel = securityDetails[title]
-                log("%s has security level %d" % (title, securityLevel))
+                log("PinSentryPlugin: %s has security level %d" % (title, securityLevel))
 
             item['securityLevel'] = securityLevel
 
         del pinDB
+        return items
+
+    # Update the classifications
+    def _cleanClassification(self, target, items):
+        securityDetails = {}
+        # Make the call to the DB to get all the specific security settings
+        if target == MenuNavigator.MOVIES:
+            pinDB = PinSentryDB()
+            securityDetails = pinDB.getAllMovieClassificationSecurity(True)
+            del pinDB
+        elif target == MenuNavigator.TVSHOWS:
+            pinDB = PinSentryDB()
+            securityDetails = pinDB.getAllTvClassificationSecurity(True)
+            del pinDB
+        else:
+            # No Classifications to deal with
+            return items
+
+        # Generate a list of certificates to check against
+        certValues = securityDetails.keys()
+
+        log("PinSentryPlugin: Allowing certificates for %s" % str(certValues))
+
+        # Check each of the items and add a flag if they are protected by a classification rule
+        for item in items:
+            if 'mpaa' in item:
+                if item['mpaa'] not in [None, ""]:
+                    cert = item['mpaa'].strip().split(':')[-1]
+                    cert = cert.strip().split()[-1]
+
+                    if cert in certValues:
+                        item['mpaa'] = cert
+                        log("PinSentryPlugin: Setting mpaa for %s to %s" % (item['title'], cert))
+                    else:
+                        log("PinSentryPlugin: Clearing mpaa for %s (was %s)" % (item['title'], item['mpaa']))
+                        item['mpaa'] = ""
         return items
 
     # get the list of plugins installed on the system
@@ -347,7 +397,7 @@ class MenuNavigator():
                 securityLevel = 0
                 if idStr in securityDetails:
                     securityLevel = securityDetails[idStr]
-                    log("Classification %s has security level %d" % (classification['name'], securityLevel))
+                    log("PinSentryPlugin: Classification %s has security level %d" % (classification['name'], securityLevel))
 
                 # Set the icon to the certificate one if available
                 iconImage = __icon__
@@ -374,6 +424,9 @@ class MenuNavigator():
     # Set the security value for a given video
     def setSecurity(self, type, title, id, level):
         log("Setting security for (id:%s) %s" % (id, title))
+        # This could take a little time to set the value so show the busy dialog
+        xbmc.executebuiltin("ActivateWindow(busydialog)")
+
         if title not in [None, ""]:
             pinDB = PinSentryDB()
             if type == MenuNavigator.TVSHOWS:
@@ -399,11 +452,12 @@ class MenuNavigator():
             elif type == MenuNavigator.CLASSIFICATIONS_TV:
                 pinDB.setTvClassificationSecurityLevel(id, title, level)
             del pinDB
-
-            xbmc.executebuiltin("Container.Refresh")
         else:
             # Handle the bulk operations like set All security for the movies
             self._setBulkSecurity(type, level)
+
+        xbmc.executebuiltin("Dialog.Close(busydialog)")
+        xbmc.executebuiltin("Container.Refresh")
 
     # Sets the security details on all the Movies in a given Movie Set
     def _setSecurityOnMoviesInMovieSets(self, setid, level):
@@ -422,9 +476,6 @@ class MenuNavigator():
 
     # Performs an operation on all the elements of a given type
     def _setBulkSecurity(self, type, level):
-        # Bulk operations can take a long time, so show the busy dialog
-        xbmc.executebuiltin("ActivateWindow(busydialog)")
-
         items = self._getVideos(type)
         for item in items:
             # Get the title of the video
@@ -432,10 +483,8 @@ class MenuNavigator():
             try:
                 title = item['title'].encode("utf-8")
             except:
-                log("setBulkSecurity: Failed to encode title %s" % title)
+                log("PinSentryPlugin: setBulkSecurity Failed to encode title %s" % title)
             self.setSecurity(type, title, item['dbid'], level)
-
-        xbmc.executebuiltin("Dialog.Close(busydialog)")
 
     # Construct the context menu
     def _getContextMenu(self, type):

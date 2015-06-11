@@ -344,12 +344,18 @@ class PinSentryDB():
         return self._getAllSecurityDetails("FileSources", keyCol=2)
 
     # Get All Movie Classification entries from the database
-    def getAllMovieClassificationSecurity(self):
-        return self._getAllSecurityDetails("ClassificationsMovies")
+    def getAllMovieClassificationSecurity(self, useCertKey=False):
+        keyCol = 1
+        if useCertKey:
+            keyCol = 2
+        return self._getAllSecurityDetails("ClassificationsMovies", keyCol)
 
     # Get All TV Classification entries from the database
-    def getAllTvClassificationSecurity(self):
-        return self._getAllSecurityDetails("ClassificationsTV")
+    def getAllTvClassificationSecurity(self, useCertKey=False):
+        keyCol = 1
+        if useCertKey:
+            keyCol = 2
+        return self._getAllSecurityDetails("ClassificationsTV", keyCol)
 
     # Select all security details from a given table in the database
     def _getAllSecurityDetails(self, tableName, keyCol=1):

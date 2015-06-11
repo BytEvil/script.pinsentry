@@ -89,14 +89,18 @@ msgid "Remember Pin For (Minutes)"
 msgstr ""
 
 msgctxt "#32017"
-msgid "Block Movies Without A Classification"
+msgid "Block Movies & Music Videos Without A Classification"
 msgstr ""
 
 msgctxt "#32018"
 msgid "Block TV Shows Without A Classification"
 msgstr ""
 
-#empty strings from id 32019 to 32100
+msgctxt "#32019"
+msgid "Highlight Videos Not Protected By Classifications"
+msgstr ""
+
+#empty strings from id 32020 to 32100
 
 msgctxt "#32101"
 msgid "Backspace"

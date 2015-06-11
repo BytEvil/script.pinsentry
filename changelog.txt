@@ -2,6 +2,7 @@ v1.0.1
 - Add German Classification Ratings
 - Add default behaviour for unsupported certifications
 - Add support for bulk security setting
+- Add option to view videos protected by classification
 
 v1.0.0
 - Initial Version
