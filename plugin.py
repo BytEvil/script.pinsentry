@@ -112,7 +112,7 @@ class MenuNavigator():
         xbmcplugin.endOfDirectory(self.addon_handle)
 
     # Show the list of videos in a given set
-    def showFolder(self, foldername, subType=""):
+    def showFolder(self, foldername, type="", subType=""):
         # Check for the special case of manually defined folders
         if foldername == MenuNavigator.TVSHOWS:
             self._setList(MenuNavigator.TVSHOWS)
@@ -127,7 +127,7 @@ class MenuNavigator():
         elif foldername == MenuNavigator.FILESOURCE:
             self._setList(MenuNavigator.FILESOURCE)
         elif foldername == MenuNavigator.CLASSIFICATIONS:
-            self._setClassificationList(subType)
+            self._setClassificationList(type, subType)
 
     # Produce the list of videos and flag which ones with security details
     def _setList(self, target):
@@ -363,24 +363,24 @@ class MenuNavigator():
         return fileSources
 
     # Display the classification details
-    def _setClassificationList(self, subType=""):
+    def _setClassificationList(self, type="", subtype=""):
         classifications = ()
         securityDetails = {}
 
         # Make the call to the DB to get all the specific security settings
         pinDB = PinSentryDB()
 
-        if subType == MenuNavigator.CLASSIFICATIONS_MOVIES:
+        if type == MenuNavigator.CLASSIFICATIONS_MOVIES:
             classifications = Settings.movieCassificationsNames
             securityDetails = pinDB.getAllMovieClassificationSecurity()
-        elif subType == MenuNavigator.CLASSIFICATIONS_TV:
+        elif type == MenuNavigator.CLASSIFICATIONS_TV:
             classifications = Settings.tvCassificationsNames
             securityDetails = pinDB.getAllTvClassificationSecurity()
 
         del pinDB
 
         # Check if we are showing the root classification listing
-        if subType in [None, ""]:
+        if type in [None, ""]:
             url = self._build_url({'mode': 'folder', 'foldername': MenuNavigator.CLASSIFICATIONS, 'type': MenuNavigator.CLASSIFICATIONS_MOVIES})
             li = xbmcgui.ListItem(__addon__.getLocalizedString(32207), iconImage=__icon__)
             li.setProperty("Fanart_Image", __fanart__)
@@ -392,24 +392,43 @@ class MenuNavigator():
             li.setProperty("Fanart_Image", __fanart__)
             li.addContextMenuItems([], replaceItems=True)
             xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
+        elif subtype in [None, ""]:
+            # Get all the different language that are supported
+            languages = []
+            for classification in classifications:
+                if classification['lang'] not in languages:
+                    languages.append(classification['lang'])
+
+            # Now print out the item for each language
+            for lang in languages:
+                url = self._build_url({'mode': 'folder', 'foldername': MenuNavigator.CLASSIFICATIONS, 'type': MenuNavigator.CLASSIFICATIONS_MOVIES, 'subtype': str(lang)})
+                li = xbmcgui.ListItem(__addon__.getLocalizedString(lang), iconImage=__icon__)
+                li.setProperty("Fanart_Image", __fanart__)
+                li.addContextMenuItems([], replaceItems=True)
+                xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
         else:
             # Get the root location of the icons
             iconLocation = os_path_join(__resource__, 'media')
             iconLocation = os_path_join(iconLocation, 'classifications')
 
             for classification in classifications:
+                # Check if we are looking for a specific country
+                if subtype != str(classification['lang']):
+                    continue
+
+                fullName = classification['name'] % __addon__.getLocalizedString(classification['lang'])
                 idStr = str(classification['id'])
                 securityLevel = 0
                 if idStr in securityDetails:
                     securityLevel = securityDetails[idStr]
-                    log("PinSentryPlugin: Classification %s has security level %d" % (classification['name'], securityLevel))
+                    log("PinSentryPlugin: Classification %s has security level %d" % (fullName, securityLevel))
 
                 # Set the icon to the certificate one if available
                 iconImage = __icon__
                 if classification['icon'] not in [None, ""]:
                     iconImage = os_path_join(iconLocation, classification['icon'])
 
-                li = xbmcgui.ListItem(classification['name'], iconImage=iconImage)
+                li = xbmcgui.ListItem(fullName, iconImage=iconImage)
 
                 # Record what the new security level will be is selected
                 newSecurityLevel = 1
@@ -421,7 +440,7 @@ class MenuNavigator():
 
                 li.setProperty("Fanart_Image", __fanart__)
                 li.addContextMenuItems([], replaceItems=True)
-                url = self._build_url({'mode': 'setsecurity', 'type': subType, 'id': classification['id'], 'title': classification['match'], 'level': newSecurityLevel})
+                url = self._build_url({'mode': 'setsecurity', 'type': type, 'id': classification['id'], 'title': classification['match'], 'level': newSecurityLevel})
                 xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=False)
 
         xbmcplugin.endOfDirectory(self.addon_handle)
@@ -542,14 +561,18 @@ if __name__ == '__main__':
         # Get the actual folder that was navigated to
         foldername = args.get('foldername', None)
         type = args.get('type', None)
+        subtype = args.get('subtype', None)
 
         if (foldername is not None) and (len(foldername) > 0):
-            subType = ""
+            type1 = ""
             if (type is not None) and (len(type) > 0):
-                subType = type[0]
+                type1 = type[0]
+            subtype1 = ""
+            if (subtype is not None) and (len(subtype) > 0):
+                subtype1 = subtype[0]
 
             menuNav = MenuNavigator(base_url, addon_handle)
-            menuNav.showFolder(foldername[0], subType)
+            menuNav.showFolder(foldername[0], type1, subtype1)
             del menuNav
 
     elif mode[0] == 'setsecurity':
