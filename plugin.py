@@ -399,9 +399,16 @@ class MenuNavigator():
                 if classification['lang'] not in languages:
                     languages.append(classification['lang'])
 
+            # Check to see if we can sort all the entries alphabetically for the given language
+            try:
+                languages = sorted(languages, key=__addon__.getLocalizedString)
+            except:
+                # If it fails to sort, then we just list them unsorted
+                log("PinSentryPlugin: Failed to sort language list")
+
             # Now print out the item for each language
             for lang in languages:
-                url = self._build_url({'mode': 'folder', 'foldername': MenuNavigator.CLASSIFICATIONS, 'type': MenuNavigator.CLASSIFICATIONS_MOVIES, 'subtype': str(lang)})
+                url = self._build_url({'mode': 'folder', 'foldername': MenuNavigator.CLASSIFICATIONS, 'type': type, 'subtype': str(lang)})
                 li = xbmcgui.ListItem(__addon__.getLocalizedString(lang), iconImage=__icon__)
                 li.setProperty("Fanart_Image", __fanart__)
                 li.addContextMenuItems([], replaceItems=True)

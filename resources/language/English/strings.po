@@ -267,3 +267,23 @@ msgstr ""
 msgctxt "#32303"
 msgid "Germany"
 msgstr ""
+
+msgctxt "#32304"
+msgid "Ireland"
+msgstr ""
+
+msgctxt "#32305"
+msgid "Netherlands"
+msgstr ""
+
+msgctxt "#32306"
+msgid "Australia"
+msgstr ""
+
+msgctxt "#32307"
+msgid "Brazil"
+msgstr ""
+
+msgctxt "#32308"
+msgid "Hungary"
+msgstr ""
