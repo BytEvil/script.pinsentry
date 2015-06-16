@@ -544,11 +544,11 @@ class MenuNavigator():
         if type in [MenuNavigator.TVSHOWS, MenuNavigator.MOVIES, MenuNavigator.MOVIESETS, MenuNavigator.MUSICVIDEOS]:
             # Clear All Security
             cmd = self._build_url({'mode': 'setsecurity', 'level': 0, 'type': type})
-            ctxtMenu.append((__addon__.getLocalizedString(32209), 'XBMC.RunPlugin(%s)' % cmd))
+            ctxtMenu.append((__addon__.getLocalizedString(32209), 'RunPlugin(%s)' % cmd))
 
             # Apply Security To All
             cmd = self._build_url({'mode': 'setsecurity', 'level': 1, 'type': type})
-            ctxtMenu.append((__addon__.getLocalizedString(32210), 'XBMC.RunPlugin(%s)' % cmd))
+            ctxtMenu.append((__addon__.getLocalizedString(32210), 'RunPlugin(%s)' % cmd))
 
         return ctxtMenu
 
