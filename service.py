@@ -112,14 +112,21 @@ class PinSentry():
         return userHasAccess
 
     @staticmethod
-    def displayInvalidPinMessage():
+    def displayInvalidPinMessage(level=1):
         # Invalid Key Notification: Dialog, Popup Notification, None
         notifType = Settings.getInvalidPinNotificationType()
         if notifType == Settings.INVALID_PIN_NOTIFICATION_POPUP:
-            cmd = 'XBMC.Notification("{0}", "{1}", 5, "{2}")'.format(__addon__.getLocalizedString(32001).encode('utf-8'), __addon__.getLocalizedString(32104).encode('utf-8'), __icon__)
+            cmd = ""
+            if Settings.getNumberOfLevels() > 1:
+                cmd = 'Notification("{0}", "{1} {2}", 5, "{3}")'.format(__addon__.getLocalizedString(32104).encode('utf-8'), __addon__.getLocalizedString(32211).encode('utf-8'), str(level), __icon__)
+            else:
+                cmd = 'Notification("{0}", "{1}", 5, "{2}")'.format(__addon__.getLocalizedString(32001).encode('utf-8'), __addon__.getLocalizedString(32104).encode('utf-8'), __icon__)
             xbmc.executebuiltin(cmd)
         elif notifType == Settings.INVALID_PIN_NOTIFICATION_DIALOG:
-            xbmcgui.Dialog().ok(__addon__.getLocalizedString(32001).encode('utf-8'), __addon__.getLocalizedString(32104).encode('utf-8'))
+            line3 = None
+            if Settings.getNumberOfLevels() > 1:
+                line3 = "%s %d" % (__addon__.getLocalizedString(32211), level)
+            xbmcgui.Dialog().ok(__addon__.getLocalizedString(32001).encode('utf-8'), __addon__.getLocalizedString(32104).encode('utf-8'), line3)
         # Remaining option is to not show any error
 
 
@@ -299,7 +306,7 @@ class PinSentryPlayer(xbmc.Player):
         else:
             log("PinSentryPlayer: Stopping video")
             self.stop()
-            PinSentry.displayInvalidPinMessage()
+            PinSentry.displayInvalidPinMessage(securityLevel)
 
         xbmcgui.Window(10000).clearProperty("PinSentryPrompting")
 
@@ -376,7 +383,7 @@ class NavigationRestrictions():
             # Clear the previous TV Show as we will want to prompt for the pin again if the
             # user navigates there again
             self.lastTvShowChecked = ""
-            PinSentry.displayInvalidPinMessage()
+            PinSentry.displayInvalidPinMessage(securityLevel)
 
     # Checks if the user has navigated to a Movie Set that needs a pin
     def checkMovieSets(self):
@@ -425,7 +432,7 @@ class NavigationRestrictions():
             # Clear the previous Movie Set as we will want to prompt for the pin again if the
             # user navigates there again
             self.lastMovieSetChecked = ""
-            PinSentry.displayInvalidPinMessage()
+            PinSentry.displayInvalidPinMessage(securityLevel)
 
     # Check if a user has navigated to a Plugin that requires a Pin
     def checkPlugins(self):
@@ -481,7 +488,7 @@ class NavigationRestrictions():
             # Clear the previous plugin as we will want to prompt for the pin again if the
             # user navigates there again
             self.lastPluginChecked = ""
-            PinSentry.displayInvalidPinMessage()
+            PinSentry.displayInvalidPinMessage(securityLevel)
 
     # Checks to see if the PinSentry addons screen has been opened
     def checkSettings(self):
@@ -538,7 +545,7 @@ class NavigationRestrictions():
             # Allow the user 5 minutes to change the settings
             self.canChangeSettings = int(time.time()) + 300
 
-            cmd = 'XBMC.Notification("{0}", "{1}", 10, "{2}")'.format(__addon__.getLocalizedString(32001).encode('utf-8'), __addon__.getLocalizedString(32110).encode('utf-8'), __icon__)
+            cmd = 'Notification("{0}", "{1}", 10, "{2}")'.format(__addon__.getLocalizedString(32001).encode('utf-8'), __addon__.getLocalizedString(32110).encode('utf-8'), __icon__)
             xbmc.executebuiltin(cmd)
 
             # Open the dialogs that should be shown, we don't reopen the Information dialog
@@ -549,7 +556,7 @@ class NavigationRestrictions():
         else:
             log("NavigationRestrictions: Not allowed access to settings which has security level %d" % securityLevel)
             self.canChangeSettings = False
-            PinSentry.displayInvalidPinMessage()
+            PinSentry.displayInvalidPinMessage(securityLevel)
 
     def checkFileSources(self):
         # Check if the user has navigated into a file source
@@ -601,7 +608,7 @@ class NavigationRestrictions():
             # Move back to the Movie Section as they are not allowed where they are at the moment
             xbmc.executebuiltin("ActivateWindow(Videos,sources://video/)", True)
             self.lastFileSource = ""
-            PinSentry.displayInvalidPinMessage()
+            PinSentry.displayInvalidPinMessage(securityLevel)
 
 
 ##################################
