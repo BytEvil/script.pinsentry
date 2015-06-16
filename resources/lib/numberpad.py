@@ -103,7 +103,7 @@ class NumberPad(xbmcgui.WindowXMLDialog):
             # NumericValue found, convert it
             # Numbers as follows
             # 140 = 0, 141 = 1 ...
-            # So take 58 off and you get the number
+            # So take 140 off and you get the number
             numVal = id - 140
             self._numberEntered(numVal)
         else:

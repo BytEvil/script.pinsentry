@@ -3,6 +3,7 @@ v1.0.1
 - Add default behaviour for unsupported certifications
 - Add support for bulk security setting
 - Add option to view videos protected by classification
+- Add support for multiple security levels
 
 v1.0.0
 - Initial Version

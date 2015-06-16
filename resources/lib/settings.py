@@ -141,11 +141,33 @@ class Settings():
         __addon__ = xbmcaddon.Addon(id='script.pinsentry')
 
     @staticmethod
-    def setPinValue(newPin):
-        # Before setting the pin, encrypt it
-        encryptedPin = Settings.encryptPin(newPin)
-        __addon__.setSetting("pinValue", encryptedPin)
+    def setPinValue(newPin, pinLevel=1):
+        encryptedPin = ""
         if len(newPin) > 0:
+            # Before setting the pin, encrypt it
+            encryptedPin = Settings.encryptPin(newPin)
+
+        # The first pin value does not have a numeric value at the end of it's ID
+        pinSettingsValue = "pinValue"
+        if pinLevel > 1:
+            pinSettingsValue = "%s%d" % (pinSettingsValue, pinLevel)
+        __addon__.setSetting(pinSettingsValue, encryptedPin)
+
+        # Flag if one of the pin numbers is not set
+        allPinsSet = True
+        if not Settings.isPinSet():
+            allPinsSet = False
+        else:
+            # Check how many pins are being used
+            numLevels = Settings.getNumberOfLevels()
+            pinCheck = 2
+            while pinCheck <= numLevels:
+                if not Settings.isPinSet(pinCheck):
+                    allPinsSet = False
+                    break
+                pinCheck = pinCheck + 1
+
+        if allPinsSet:
             # This is an internal fudge so that we can display a warning if the pin is not set
             __addon__.setSetting("pinValueSet", "true")
         else:
@@ -156,8 +178,11 @@ class Settings():
         return hashlib.sha256(rawValue).hexdigest()
 
     @staticmethod
-    def isPinSet():
-        pinValue = __addon__.getSetting("pinValue")
+    def isPinSet(pinLevel=1):
+        pinSettingsValue = "pinValue"
+        if pinLevel > 1:
+            pinSettingsValue = "%s%d" % (pinSettingsValue, pinLevel)
+        pinValue = __addon__.getSetting(pinSettingsValue)
         if pinValue not in [None, ""]:
             return True
         return False
@@ -167,12 +192,25 @@ class Settings():
         return int(float(__addon__.getSetting('pinLength')))
 
     @staticmethod
-    def isPinCorrect(inputPin):
+    def isPinCorrect(inputPin, pinLevel=1):
+        pinSettingsValue = "pinValue"
+        if pinLevel > 1:
+            pinSettingsValue = "%s%d" % (pinSettingsValue, pinLevel)
         # First encrypt the pin that has been passed in
         inputPinEncrypt = Settings.encryptPin(inputPin)
-        if inputPinEncrypt == __addon__.getSetting('pinValue'):
+        if inputPinEncrypt == __addon__.getSetting(pinSettingsValue):
             return True
         return False
+
+    @staticmethod
+    def getSecurityLevelForPin(inputPin):
+        pinCheck = Settings.getNumberOfLevels()
+        while pinCheck > 0:
+            if Settings.isPinSet(pinCheck):
+                if Settings.isPinCorrect(inputPin, pinCheck):
+                    return pinCheck
+            pinCheck = pinCheck - 1
+        return -1
 
     @staticmethod
     def getInvalidPinNotificationType():
@@ -261,6 +299,12 @@ class Settings():
         return __addon__.getSetting("activityFileSourceNavigationOnly") != 'true'
 
     @staticmethod
+    def showSecurityLevelInPlugin():
+        if Settings.getNumberOfLevels() < 2:
+            return False
+        return __addon__.getSetting("showSecurityInfo") == 'true'
+
+    @staticmethod
     def isSupportedMovieClassification(classification):
         for classification in Settings.movieCassificationsNames:
             if classification == classification['match']:
@@ -291,3 +335,17 @@ class Settings():
     @staticmethod
     def isHighlightClassificationUnprotectedVideos():
         return __addon__.getSetting("highlightClassificationUnprotectedVideos") == 'true'
+
+    @staticmethod
+    def getNumberOfLevels():
+        return int(__addon__.getSetting("numberOfLevels")) + 1
+
+    @staticmethod
+    def getSettingsSecurityLevel():
+        # The security level required to change the settings is the highest pin with a value set
+        pinCheck = Settings.getNumberOfLevels()
+        while pinCheck > 0:
+            if Settings.isPinSet(pinCheck):
+                return pinCheck
+            pinCheck = pinCheck - 1
+        return -1

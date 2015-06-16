@@ -74,7 +74,7 @@ class PinSentry():
         return PinSentry.pinLevelCached
 
     @staticmethod
-    def promptUserForPin():
+    def promptUserForPin(requiredLevel=1):
         userHasAccess = True
 
         # Set the background
@@ -95,14 +95,18 @@ class PinSentry():
         enteredPin = numberpad.getPin()
         del numberpad
 
+        # Find out what level this pin gives access to
+        # This will be the highest level
+        pinMatchLevel = Settings.getSecurityLevelForPin(enteredPin)
+
         # Check to see if the pin entered is correct
-        if Settings.isPinCorrect(enteredPin):
-            log("PinSentry: Pin entered Correctly")
+        if pinMatchLevel >= requiredLevel:
+            log("PinSentry: Pin entered correctly for security level %d" % pinMatchLevel)
             userHasAccess = True
             # Check if we are allowed to cache the pin level
-            PinSentry.setCachedPinLevel(1)
+            PinSentry.setCachedPinLevel(pinMatchLevel)
         else:
-            log("PinSentry: Incorrect Pin Value Entered")
+            log("PinSentry: Incorrect Pin Value Entered, required level %d entered level %d" % (requiredLevel, pinMatchLevel))
             userHasAccess = False
 
         return userHasAccess
@@ -288,7 +292,7 @@ class PinSentryPlayer(xbmc.Player):
         log("PinSentryPlayer: Pausing video to check if OK to play")
 
         # Prompt the user for the pin, returns True if they knew it
-        if PinSentry.promptUserForPin():
+        if PinSentry.promptUserForPin(securityLevel):
             log("PinSentryPlayer: Resuming video")
             # Pausing again will start the video playing again
             self.pause()
@@ -360,7 +364,7 @@ class NavigationRestrictions():
             return
 
         # Prompt the user for the pin, returns True if they knew it
-        if PinSentry.promptUserForPin():
+        if PinSentry.promptUserForPin(securityLevel):
             log("NavigationRestrictions: Allowed access to %s" % tvshow)
         else:
             log("NavigationRestrictions: Not allowed access to %s which has security level %d" % (tvshow, securityLevel))
@@ -412,7 +416,7 @@ class NavigationRestrictions():
             return
 
         # Prompt the user for the pin, returns True if they knew it
-        if PinSentry.promptUserForPin():
+        if PinSentry.promptUserForPin(securityLevel):
             log("NavigationRestrictions: Allowed access to movie set %s" % moveSetName)
         else:
             log("NavigationRestrictions: Not allowed access to movie set %s which has security level %d" % (moveSetName, securityLevel))
@@ -456,7 +460,7 @@ class NavigationRestrictions():
             # Check for the special case that we are accessing ourself
             # in which case we have a minimum security level
             if 'PinSentry' in pluginName:
-                securityLevel = 1
+                securityLevel = Settings.getSettingsSecurityLevel()
             else:
                 log("NavigationRestrictions: No security enabled for plugin %s" % pluginName)
                 return
@@ -468,7 +472,7 @@ class NavigationRestrictions():
             return
 
         # Prompt the user for the pin, returns True if they knew it
-        if PinSentry.promptUserForPin():
+        if PinSentry.promptUserForPin(securityLevel):
             log("NavigationRestrictions: Allowed access to plugin %s" % pluginName)
         else:
             log("NavigationRestrictions: Not allowed access to plugin %s which has security level %d" % (pluginName, securityLevel))
@@ -514,7 +518,10 @@ class NavigationRestrictions():
         del pinDB
 
         if securityLevel < 1:
-            securityLevel = 1
+            # If the user hasn't reset the permissions, then set it to the highest
+            # security level available
+            securityLevel = Settings.getSettingsSecurityLevel()
+            log("NavigationRestrictions: Settings screen requires security level %d" % securityLevel)
 
         # Check if we have already cached the pin number and at which level
         if PinSentry.getCachedPinLevel() >= securityLevel:
@@ -526,7 +533,7 @@ class NavigationRestrictions():
         xbmc.executebuiltin("Dialog.Close(all, true)", True)
 
         # Prompt the user for the pin, returns True if they knew it
-        if PinSentry.promptUserForPin():
+        if PinSentry.promptUserForPin(securityLevel):
             log("NavigationRestrictions: Allowed access to settings")
             # Allow the user 5 minutes to change the settings
             self.canChangeSettings = int(time.time()) + 300
@@ -587,7 +594,7 @@ class NavigationRestrictions():
             return
 
         # Prompt the user for the pin, returns True if they knew it
-        if PinSentry.promptUserForPin():
+        if PinSentry.promptUserForPin(securityLevel):
             log("NavigationRestrictions: Allowed access to File Source %s" % navPath)
         else:
             log("NavigationRestrictions: Not allowed access to File Source %s which has security level %d" % (navPath, securityLevel))

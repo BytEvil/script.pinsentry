@@ -165,7 +165,8 @@ class MenuNavigator():
                 li.setInfo('video', {'PlayCount': 1})
                 # Not the best display format - but the only way that I can get a number to display
                 # In the list, the problem is it will display 01:00 - but at least it's something
-#                li.setInfo('video', {'Duration': 1})
+                if Settings.showSecurityLevelInPlugin():
+                    li.setInfo('video', {'Duration': item['securityLevel']})
                 # Next time the item is selected, it will be disabled
                 newSecurityLevel = 0
             elif Settings.isHighlightClassificationUnprotectedVideos():
@@ -455,6 +456,25 @@ class MenuNavigator():
     # Set the security value for a given video
     def setSecurity(self, type, title, id, level):
         log("Setting security for (id:%s) %s" % (id, title))
+
+        numLevels = Settings.getNumberOfLevels()
+        if numLevels > 1:
+            # Need to prompt the user to see which pin they are trying to set
+            displayNameList = []
+            # Add the option to turn it off
+            displayNameList.append("%s %s" % (__addon__.getLocalizedString(32211), __addon__.getLocalizedString(32013)))
+            for i in range(1, numLevels + 1):
+                displayString = "%s %d" % (__addon__.getLocalizedString(32211), i)
+                displayNameList.append(displayString)
+            select = xbmcgui.Dialog().select(__addon__.getLocalizedString(32001), displayNameList)
+
+            if select != -1:
+                level = select
+                log("Setting security level to %d" % level)
+            else:
+                log("Exiting set security as no level selected")
+                return
+
         # This could take a little time to set the value so show the busy dialog
         xbmc.executebuiltin("ActivateWindow(busydialog)")
 
