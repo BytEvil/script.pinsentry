@@ -112,7 +112,11 @@ msgctxt "#32022"
 msgid "Show Security Level On Permissions Screen"
 msgstr ""
 
-#empty strings from id 32023 to 32100
+msgctxt "#32023"
+msgid "Allow Direction Keys In Pin Code"
+msgstr ""
+
+#empty strings from id 32024 to 32100
 
 msgctxt "#32101"
 msgid "Backspace"

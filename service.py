@@ -25,8 +25,7 @@ from background import Background
 
 
 # Feature Options:
-# Option to have different passwords without the numbers (Remote with no numbers?)
-# Cleanup database of removed library items (when screensaver starts)
+# Cleanup database of removed library items (when screensaver starts, or library refreshed)
 
 
 # Class to handle core Pin Sentry behaviour

@@ -4,6 +4,7 @@ v1.0.1
 - Add support for bulk security setting
 - Add option to view videos protected by classification
 - Add support for multiple security levels
+- Add support for pins using just direction keys
 
 v1.0.0
 - Initial Version

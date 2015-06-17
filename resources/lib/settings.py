@@ -267,6 +267,10 @@ class Settings():
         return cacheDuration
 
     @staticmethod
+    def isDirectionKeysAsPin():
+        return __addon__.getSetting("directionKeysAsPin") == 'true'
+
+    @staticmethod
     def isDisplayBackground():
         return __addon__.getSetting("background") != "0"
 
