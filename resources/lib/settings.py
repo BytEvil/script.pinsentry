@@ -205,11 +205,16 @@ class Settings():
     @staticmethod
     def getSecurityLevelForPin(inputPin):
         pinCheck = Settings.getNumberOfLevels()
+        aPinSet = False
         while pinCheck > 0:
             if Settings.isPinSet(pinCheck):
+                aPinSet = True
                 if Settings.isPinCorrect(inputPin, pinCheck):
                     return pinCheck
             pinCheck = pinCheck - 1
+        # If no pins are set allow full access
+        if not aPinSet:
+            return 5
         return -1
 
     @staticmethod

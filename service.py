@@ -25,7 +25,6 @@ from background import Background
 
 
 # Feature Options:
-# Different Pins for different priorities (one a subset of the next)
 # Option to have different passwords without the numbers (Remote with no numbers?)
 # Cleanup database of removed library items (when screensaver starts)
 
