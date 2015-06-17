@@ -25,7 +25,7 @@ from background import Background
 
 
 # Feature Options:
-# Cleanup database of removed library items (when screensaver starts, or library refreshed)
+# Cleanup database of removed library items (when screensaver starts, or library refresh)
 
 
 # Class to handle core Pin Sentry behaviour
@@ -205,6 +205,12 @@ class PinSentryPlayer(xbmc.Player):
                     pinDB = PinSentryDB()
                     securityLevel = pinDB.getMusicVideoSecurityLevel(title)
                     del pinDB
+
+        # For video files it is possible to set them to always be allowed to play, in this case
+        # the security value is -1 and we don't want to perform any new checking
+        if securityLevel == -1:
+            log("PinSentryPlayer: Security level is -1, so allowing access")
+            return
 
         # Now perform the check that restricts if a file is in a file source
         # that should not be played

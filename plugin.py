@@ -158,27 +158,36 @@ class MenuNavigator():
             except:
                 log("setVideoList: Failed to encode title %s" % title)
 
-            # Record what the new security level will be is selected
-            newSecurityLevel = 1
+            # Check if the classification is restricting this item
+            isBlockedByClassification = False
+            if 'mpaa' in item:
+                if item['mpaa'] not in [None, ""]:
+                    isBlockedByClassification = True
+
             # Add a tick if security is set
-            if item['securityLevel'] > 0:
+            if item['securityLevel'] != 0:
                 li.setInfo('video', {'PlayCount': 1})
                 # Not the best display format - but the only way that I can get a number to display
                 # In the list, the problem is it will display 01:00 - but at least it's something
                 if Settings.showSecurityLevelInPlugin():
                     li.setInfo('video', {'Duration': item['securityLevel']})
-                # Next time the item is selected, it will be disabled
-                newSecurityLevel = 0
             elif Settings.isHighlightClassificationUnprotectedVideos():
                 # If the user wishes to see which files are not protected by one of the rules
                 # currently applied, we put the play signal next to them
-                if 'mpaa' in item:
-                    if item['mpaa'] in [None, ""]:
-                        li.setProperty("TotalTime", "")
-                        li.setProperty("ResumeTime", "1")
+                if not isBlockedByClassification:
+                    li.setProperty("TotalTime", "")
+                    li.setProperty("ResumeTime", "1")
+
+            # Handle the case where we want to turn off security for a video
+            if isBlockedByClassification and (item['securityLevel'] == -1):
+                # This is the case where the user has forced access to be allowed, this
+                # is useful if you have classification enabled and you want to allow a
+                # given video for a classification to be unprotected
+                li.setProperty("TotalTime", "")
+                li.setProperty("ResumeTime", "1")
 
             li.setProperty("Fanart_Image", item['fanart'])
-            url = self._build_url({'mode': 'setsecurity', 'level': newSecurityLevel, 'type': target, 'title': title, 'id': item['dbid']})
+            url = self._build_url({'mode': 'setsecurity', 'level': item['securityLevel'], 'type': target, 'title': title, 'id': item['dbid'], 'classificationBlocked': str(isBlockedByClassification)})
             xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=False)
 
         xbmcplugin.endOfDirectory(self.addon_handle)
@@ -438,42 +447,60 @@ class MenuNavigator():
 
                 li = xbmcgui.ListItem(fullName, iconImage=iconImage)
 
-                # Record what the new security level will be is selected
-                newSecurityLevel = 1
                 # Add a tick if security is set
                 if securityLevel > 0:
                     li.setInfo('video', {'PlayCount': 1})
-                    # Next time the item is selected, it will be disabled
-                    newSecurityLevel = 0
 
                 li.setProperty("Fanart_Image", __fanart__)
                 li.addContextMenuItems([], replaceItems=True)
-                url = self._build_url({'mode': 'setsecurity', 'type': type, 'id': classification['id'], 'title': classification['match'], 'level': newSecurityLevel})
+                url = self._build_url({'mode': 'setsecurity', 'type': type, 'id': classification['id'], 'title': classification['match'], 'level': securityLevel})
                 xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=False)
 
         xbmcplugin.endOfDirectory(self.addon_handle)
 
     # Set the security value for a given video
-    def setSecurity(self, type, title, id, level):
+    def setSecurity(self, type, title, id, oldLevel, classBlocked=False, forceLevel=None):
         log("Setting security for (id:%s) %s" % (id, title))
 
-        numLevels = Settings.getNumberOfLevels()
-        if numLevels > 1:
-            # Need to prompt the user to see which pin they are trying to set
-            displayNameList = []
-            # Add the option to turn it off
-            displayNameList.append("%s %s" % (__addon__.getLocalizedString(32211), __addon__.getLocalizedString(32013)))
-            for i in range(1, numLevels + 1):
-                displayString = "%s %d" % (__addon__.getLocalizedString(32211), i)
-                displayNameList.append(displayString)
-            select = xbmcgui.Dialog().select(__addon__.getLocalizedString(32001), displayNameList)
+        level = 1
 
-            if select != -1:
-                level = select
-                log("Setting security level to %d" % level)
-            else:
-                log("Exiting set security as no level selected")
-                return
+        # Check if we need to prompt the user or the new security level has been supplied
+        if forceLevel is None:
+            # Set the new security level to be used
+            if oldLevel > 0:
+                # Default is to disable it if it was enabled
+                level = 0
+
+            numLevels = Settings.getNumberOfLevels()
+            if numLevels > 1 or classBlocked:
+                # Need to prompt the user to see which pin they are trying to set
+                displayNameList = []
+                # Add the option to turn it off
+                displayNameList.append("%s %s" % (__addon__.getLocalizedString(32211), __addon__.getLocalizedString(32013)))
+                for i in range(1, numLevels + 1):
+                    secLevStr = str(i)
+                    if numLevels < 2:
+                        # If there is only one security level, use "On" rather than the number
+                        secLevStr = __addon__.getLocalizedString(32014)
+                    displayString = "%s %s" % (__addon__.getLocalizedString(32211), secLevStr)
+                    displayNameList.append(displayString)
+
+                # Check if we need the option to disable a classification restriction
+                if classBlocked:
+                    displayNameList.append(__addon__.getLocalizedString(32212))
+
+                select = xbmcgui.Dialog().select(__addon__.getLocalizedString(32001), displayNameList)
+
+                if select != -1:
+                    level = select
+                    if classBlocked and (select >= (len(displayNameList) - 1)):
+                        level = -1
+                    log("Setting security level to %d" % level)
+                else:
+                    log("Exiting set security as no level selected")
+                    return
+        else:
+            level = forceLevel
 
         # This could take a little time to set the value so show the busy dialog
         xbmc.executebuiltin("ActivateWindow(busydialog)")
@@ -522,7 +549,7 @@ class MenuNavigator():
             if 'movies' in json_response['result']['setdetails']:
                 for item in json_response['result']['setdetails']['movies']:
                     # Now set the security on the movies in the set
-                    self.setSecurity(MenuNavigator.MOVIES, item['label'], item['movieid'], level)
+                    self.setSecurity(MenuNavigator.MOVIES, item['label'], item['movieid'], level, forceLevel=level)
         return
 
     # Performs an operation on all the elements of a given type
@@ -535,7 +562,7 @@ class MenuNavigator():
                 title = item['title'].encode("utf-8")
             except:
                 log("PinSentryPlugin: setBulkSecurity Failed to encode title %s" % title)
-            self.setSecurity(type, title, item['dbid'], level)
+            self.setSecurity(type, title, item['dbid'], level, forceLevel=level)
 
     # Construct the context menu
     def _getContextMenu(self, type):
@@ -543,7 +570,7 @@ class MenuNavigator():
 
         if type in [MenuNavigator.TVSHOWS, MenuNavigator.MOVIES, MenuNavigator.MOVIESETS, MenuNavigator.MUSICVIDEOS]:
             # Clear All Security
-            cmd = self._build_url({'mode': 'setsecurity', 'level': 0, 'type': type})
+            cmd = self._build_url({'mode': 'setsecurity', 'level': 0, 'type': type, 'forceLevel': 0})
             ctxtMenu.append((__addon__.getLocalizedString(32209), 'RunPlugin(%s)' % cmd))
 
             # Apply Security To All
@@ -610,6 +637,8 @@ if __name__ == '__main__':
         title = args.get('title', None)
         level = args.get('level', None)
         id = args.get('id', None)
+        classificationBlocked = args.get('classificationBlocked', None)
+        forceLevel = args.get('forceLevel', None)
 
         if (type is not None) and (len(type) > 0):
             log("PinSentryPlugin: Type to set security for %s" % type[0])
@@ -622,9 +651,16 @@ if __name__ == '__main__':
             dbid = ""
             if (id is not None) and (len(id) > 0):
                 dbid = id[0]
+            classBlocked = False
+            if (classificationBlocked is not None) and (len(classificationBlocked) > 0):
+                if classificationBlocked[0] == str(True):
+                    classBlocked = True
+            forceLevelVal = None
+            if (forceLevel is not None) and (len(forceLevel) > 0):
+                forceLevelVal = int(forceLevel[0])
 
             menuNav = MenuNavigator(base_url, addon_handle)
-            menuNav.setSecurity(type[0], secTitle, dbid, secLevel)
+            menuNav.setSecurity(type[0], secTitle, dbid, secLevel, classBlocked, forceLevelVal)
             del menuNav
 
     elif mode[0] == 'setclassification':
