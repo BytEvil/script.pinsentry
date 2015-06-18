@@ -310,11 +310,19 @@ class MenuNavigator():
                     except:
                         log("PinSentryPlugin: Failed to encode certificate")
 
+                    # Need to decode the title as it doesn't link it for the logging that follows
+                    # if we don't
+                    title = item['title']
+                    try:
+                        title = item['title'].decode("utf-8")
+                    except:
+                        log("PinSentryPlugin: Failed to decode title")
+
                     if cert in certValues:
                         item['mpaa'] = cert
-                        log("PinSentryPlugin: Setting mpaa for %s to %s" % (item['title'], cert))
+                        log("PinSentryPlugin: Setting mpaa for %s to %s" % (title, cert))
                     else:
-                        log("PinSentryPlugin: Clearing mpaa for %s (was %s)" % (item['title'], item['mpaa']))
+                        log("PinSentryPlugin: Clearing mpaa for %s (was %s)" % (title, item['mpaa']))
                         item['mpaa'] = ""
         return items
 
