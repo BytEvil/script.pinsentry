@@ -282,6 +282,7 @@ class PinSentryPlayer(xbmc.Player):
                     loopCount = loopCount - 1
                     if xbmcgui.Window(10025).getProperty("PlayingBackgroundMedia") in [None, ""]:
                         isBackgroundMedia = False
+                        break
                     xbmc.sleep(10)
 
                 if isBackgroundMedia:
