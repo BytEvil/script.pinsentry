@@ -96,7 +96,24 @@ class Settings():
                                 {'id': 44, 'name': '%s - 12', 'lang': 32308, 'match': '12', 'icon': 'Hungary/Hungary-12.png'},
                                 {'id': 45, 'name': '%s - 16', 'lang': 32308, 'match': '16', 'icon': 'Hungary/Hungary-16.png'},
                                 {'id': 46, 'name': '%s - 18', 'lang': 32308, 'match': '18', 'icon': 'Hungary/Hungary-18.png'},
-                                {'id': 47, 'name': '%s - X', 'lang': 32308, 'match': 'X', 'icon': 'Hungary/Hungary-X.png'}]
+                                {'id': 47, 'name': '%s - X', 'lang': 32308, 'match': 'X', 'icon': 'Hungary/Hungary-X.png'},
+                                # Denmark
+                                {'id': 48, 'name': '%s - A', 'lang': 32309, 'match': 'A', 'icon': None},
+                                {'id': 49, 'name': '%s - 7', 'lang': 32309, 'match': '7', 'icon': None},
+                                {'id': 50, 'name': '%s - 11', 'lang': 32309, 'match': '11', 'icon': None},
+                                {'id': 51, 'name': '%s - 15', 'lang': 32309, 'match': '15', 'icon': None},
+                                {'id': 52, 'name': '%s - F', 'lang': 32309, 'match': 'F', 'icon': None},
+                                # Norway
+                                {'id': 53, 'name': '%s - A', 'lang': 32310, 'match': 'A', 'icon': None},
+                                {'id': 54, 'name': '%s - 7', 'lang': 32310, 'match': '7', 'icon': None},
+                                {'id': 55, 'name': '%s - 11', 'lang': 32310, 'match': '11', 'icon': None},
+                                {'id': 56, 'name': '%s - 15', 'lang': 32310, 'match': '15', 'icon': None},
+                                {'id': 57, 'name': '%s - 18', 'lang': 32310, 'match': '18', 'icon': None},
+                                # Sweden
+                                {'id': 58, 'name': '%s - Btl', 'lang': 32311, 'match': 'Btl', 'icon': None},
+                                {'id': 59, 'name': '%s - 7', 'lang': 32311, 'match': '7', 'icon': None},
+                                {'id': 60, 'name': '%s - 11', 'lang': 32311, 'match': '11', 'icon': None},
+                                {'id': 61, 'name': '%s - 15', 'lang': 32311, 'match': '15', 'icon': None}]
 
     # http://en.wikipedia.org/wiki/Television_content_rating_systems
     tvCassificationsNames = [{'id': 1, 'name': '%s - TV-Y', 'lang': 32302, 'match': 'TV-Y', 'icon': 'USA/USA-TV-Y.png'},  # USA
