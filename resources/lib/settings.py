@@ -104,16 +104,23 @@ class Settings():
                                 {'id': 51, 'name': '%s - 15', 'lang': 32309, 'match': '15', 'icon': 'Denmark/Denmark-15.png'},
                                 {'id': 52, 'name': '%s - F', 'lang': 32309, 'match': 'F', 'icon': 'Denmark/Denmark-F.png'},
                                 # Norway
-                                {'id': 53, 'name': '%s - A', 'lang': 32310, 'match': 'A', 'icon': None},
-                                {'id': 54, 'name': '%s - 7', 'lang': 32310, 'match': '7', 'icon': None},
-                                {'id': 55, 'name': '%s - 11', 'lang': 32310, 'match': '11', 'icon': None},
-                                {'id': 56, 'name': '%s - 15', 'lang': 32310, 'match': '15', 'icon': None},
-                                {'id': 57, 'name': '%s - 18', 'lang': 32310, 'match': '18', 'icon': None},
+                                {'id': 53, 'name': '%s - A', 'lang': 32310, 'match': 'A', 'icon': 'Norway/Norway-A.png'},
+                                {'id': 54, 'name': '%s - 7', 'lang': 32310, 'match': '7', 'icon': 'Norway/Norway-7.png'},
+                                {'id': 55, 'name': '%s - 11', 'lang': 32310, 'match': '11', 'icon': 'Norway/Norway-11.png'},
+                                {'id': 56, 'name': '%s - 15', 'lang': 32310, 'match': '15', 'icon': 'Norway/Norway-15.png'},
+                                {'id': 57, 'name': '%s - 18', 'lang': 32310, 'match': '18', 'icon': 'Norway/Norway-18.png'},
+                                # Norway (New classifications for 2015 onwards)
+                                {'id': 58, 'name': '%s - A', 'lang': 32310, 'match': 'A', 'icon': 'Norway/Norway-2015-A.png'},
+                                {'id': 59, 'name': '%s - 6', 'lang': 32310, 'match': '6', 'icon': 'Norway/Norway-2015-6.png'},
+                                {'id': 60, 'name': '%s - 9', 'lang': 32310, 'match': '9', 'icon': 'Norway/Norway-2015-9.png'},
+                                {'id': 61, 'name': '%s - 12', 'lang': 32310, 'match': '12', 'icon': 'Norway/Norway-2015-12.png'},
+                                {'id': 62, 'name': '%s - 15', 'lang': 32310, 'match': '15', 'icon': 'Norway/Norway-2015-15.png'},
+                                {'id': 63, 'name': '%s - 18', 'lang': 32310, 'match': '18', 'icon': 'Norway/Norway-2015-18.png'},
                                 # Sweden
-                                {'id': 58, 'name': '%s - Btl', 'lang': 32311, 'match': 'Btl', 'icon': None},
-                                {'id': 59, 'name': '%s - 7', 'lang': 32311, 'match': '7', 'icon': None},
-                                {'id': 60, 'name': '%s - 11', 'lang': 32311, 'match': '11', 'icon': None},
-                                {'id': 61, 'name': '%s - 15', 'lang': 32311, 'match': '15', 'icon': None}]
+                                {'id': 64, 'name': '%s - Btl', 'lang': 32311, 'match': 'Btl', 'icon': None},
+                                {'id': 65, 'name': '%s - 7', 'lang': 32311, 'match': '7', 'icon': None},
+                                {'id': 66, 'name': '%s - 11', 'lang': 32311, 'match': '11', 'icon': None},
+                                {'id': 67, 'name': '%s - 15', 'lang': 32311, 'match': '15', 'icon': None}]
 
     # http://en.wikipedia.org/wiki/Television_content_rating_systems
     tvCassificationsNames = [{'id': 1, 'name': '%s - TV-Y', 'lang': 32302, 'match': 'TV-Y', 'icon': 'USA/USA-TV-Y.png'},  # USA
