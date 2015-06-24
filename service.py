@@ -24,10 +24,6 @@ from database import PinSentryDB
 from background import Background
 
 
-# Feature Options:
-# Cleanup database of removed library items (when screensaver starts, or library refresh)
-
-
 # Class to handle core Pin Sentry behaviour
 class PinSentry():
     pinLevelCached = 0

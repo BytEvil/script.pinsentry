@@ -42,6 +42,20 @@ class Settings():
     INVALID_PIN_NOTIFICATION_DIALOG = 1
     INVALID_PIN_NOTIFICATION_NONE = 2
 
+    # Flags from www.pixabay.com User:OpenClipartVectors
+    # https://pixabay.com/en/photos/?q=user%3AOpenClipartVectors+flag&image_type=&cat=&order=
+    flags = [{'lang': 32301, 'icon': 'UK/UK-flag.png'},
+             {'lang': 32302, 'icon': 'USA/USA-flag.png'},
+             {'lang': 32303, 'icon': 'Germany/Germany-flag.png'},
+             {'lang': 32304, 'icon': 'Ireland/Ireland-flag.png'},
+             {'lang': 32305, 'icon': 'Netherlands/Netherlands-flag.png'},
+             {'lang': 32306, 'icon': 'Australia/Australia-flag.png'},
+             {'lang': 32307, 'icon': 'Brazil/Brazil-flag.png'},
+             {'lang': 32308, 'icon': 'Hungary/Hungary-flag.png'},
+             {'lang': 32309, 'icon': 'Denmark/Denmark-flag.png'},
+             {'lang': 32310, 'icon': 'Norway/Norway-flag.png'},
+             {'lang': 32311, 'icon': 'Sweden/Sweden-flag.png'}]
+
     # http://en.wikipedia.org/wiki/Motion_picture_rating_system
     movieCassificationsNames = [{'id': 1, 'name': '%s - U', 'lang': 32301, 'match': 'U', 'icon': 'UK/UK-U.png'},  # UK
                                 {'id': 2, 'name': '%s - PG', 'lang': 32301, 'match': 'PG', 'icon': 'UK/UK-PG.png'},

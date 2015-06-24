@@ -397,6 +397,10 @@ class MenuNavigator():
 
         del pinDB
 
+        # Get the root location of the icons
+        iconLocation = os_path_join(__resource__, 'media')
+        iconLocation = os_path_join(iconLocation, 'classifications')
+
         # Check if we are showing the root classification listing
         if type in [None, ""]:
             url = self._build_url({'mode': 'folder', 'foldername': MenuNavigator.CLASSIFICATIONS, 'type': MenuNavigator.CLASSIFICATIONS_MOVIES})
@@ -427,15 +431,17 @@ class MenuNavigator():
             # Now print out the item for each language
             for lang in languages:
                 url = self._build_url({'mode': 'folder', 'foldername': MenuNavigator.CLASSIFICATIONS, 'type': type, 'subtype': str(lang)})
-                li = xbmcgui.ListItem(__addon__.getLocalizedString(lang), iconImage=__icon__)
+
+                iconImage = __icon__
+                for flag in Settings.flags:
+                    if flag['lang'] == lang:
+                        iconImage = os_path_join(iconLocation, flag['icon'])
+
+                li = xbmcgui.ListItem(__addon__.getLocalizedString(lang), iconImage=iconImage)
                 li.setProperty("Fanart_Image", __fanart__)
                 li.addContextMenuItems([], replaceItems=True)
                 xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
         else:
-            # Get the root location of the icons
-            iconLocation = os_path_join(__resource__, 'media')
-            iconLocation = os_path_join(iconLocation, 'classifications')
-
             for classification in classifications:
                 # Check if we are looking for a specific country
                 if subtype != str(classification['lang']):
