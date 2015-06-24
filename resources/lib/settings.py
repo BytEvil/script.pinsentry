@@ -98,11 +98,11 @@ class Settings():
                                 {'id': 46, 'name': '%s - 18', 'lang': 32308, 'match': '18', 'icon': 'Hungary/Hungary-18.png'},
                                 {'id': 47, 'name': '%s - X', 'lang': 32308, 'match': 'X', 'icon': 'Hungary/Hungary-X.png'},
                                 # Denmark
-                                {'id': 48, 'name': '%s - A', 'lang': 32309, 'match': 'A', 'icon': None},
-                                {'id': 49, 'name': '%s - 7', 'lang': 32309, 'match': '7', 'icon': None},
-                                {'id': 50, 'name': '%s - 11', 'lang': 32309, 'match': '11', 'icon': None},
-                                {'id': 51, 'name': '%s - 15', 'lang': 32309, 'match': '15', 'icon': None},
-                                {'id': 52, 'name': '%s - F', 'lang': 32309, 'match': 'F', 'icon': None},
+                                {'id': 48, 'name': '%s - A', 'lang': 32309, 'match': 'A', 'icon': 'Denmark/Denmark-A.png'},
+                                {'id': 49, 'name': '%s - 7', 'lang': 32309, 'match': '7', 'icon': 'Denmark/Denmark-7.png'},
+                                {'id': 50, 'name': '%s - 11', 'lang': 32309, 'match': '11', 'icon': 'Denmark/Denmark-11.png'},
+                                {'id': 51, 'name': '%s - 15', 'lang': 32309, 'match': '15', 'icon': 'Denmark/Denmark-15.png'},
+                                {'id': 52, 'name': '%s - F', 'lang': 32309, 'match': 'F', 'icon': 'Denmark/Denmark-F.png'},
                                 # Norway
                                 {'id': 53, 'name': '%s - A', 'lang': 32310, 'match': 'A', 'icon': None},
                                 {'id': 54, 'name': '%s - 7', 'lang': 32310, 'match': '7', 'icon': None},
