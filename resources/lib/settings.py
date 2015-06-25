@@ -353,15 +353,15 @@ class Settings():
 
     @staticmethod
     def isSupportedMovieClassification(classification):
-        for classification in Settings.movieCassificationsNames:
-            if classification == classification['match']:
+        for classificationItem in Settings.movieCassificationsNames:
+            if classification == classificationItem['match']:
                 return True
         return False
 
     @staticmethod
     def isSupportedTvShowClassification(classification):
-        for classification in Settings.tvCassificationsNames:
-            if classification == classification['match']:
+        for classificationItem in Settings.tvCassificationsNames:
+            if classification == classificationItem['match']:
                 return True
         return False
 
