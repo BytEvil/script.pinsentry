@@ -54,7 +54,8 @@ class Settings():
              {'lang': 32308, 'icon': 'Hungary/Hungary-flag.png'},
              {'lang': 32309, 'icon': 'Denmark/Denmark-flag.png'},
              {'lang': 32310, 'icon': 'Norway/Norway-flag.png'},
-             {'lang': 32311, 'icon': 'Sweden/Sweden-flag.png'}]
+             {'lang': 32311, 'icon': 'Sweden/Sweden-flag.png'},
+             {'lang': 32312, 'icon': 'Finland/Finland-flag.png'}]
 
     # http://en.wikipedia.org/wiki/Motion_picture_rating_system
     movieCassificationsNames = [{'id': 1, 'name': '%s - U', 'lang': 32301, 'match': 'U', 'icon': 'UK/UK-U.png'},  # UK
@@ -134,7 +135,13 @@ class Settings():
                                 {'id': 64, 'name': '%s - Btl', 'lang': 32311, 'match': 'Btl', 'icon': None},
                                 {'id': 65, 'name': '%s - 7', 'lang': 32311, 'match': '7', 'icon': None},
                                 {'id': 66, 'name': '%s - 11', 'lang': 32311, 'match': '11', 'icon': None},
-                                {'id': 67, 'name': '%s - 15', 'lang': 32311, 'match': '15', 'icon': None}]
+                                {'id': 67, 'name': '%s - 15', 'lang': 32311, 'match': '15', 'icon': None},
+                                # Finland
+                                {'id': 68, 'name': '%s - S', 'lang': 32312, 'match': 'S', 'icon': 'Finland/Finland-S.png'},
+                                {'id': 69, 'name': '%s - 7', 'lang': 32312, 'match': '7', 'icon': 'Finland/Finland-7.png'},
+                                {'id': 69, 'name': '%s - 12', 'lang': 32312, 'match': '12', 'icon': 'Finland/Finland-12.png'},
+                                {'id': 69, 'name': '%s - 16', 'lang': 32312, 'match': '16', 'icon': 'Finland/Finland-16.png'},
+                                {'id': 69, 'name': '%s - 18', 'lang': 32312, 'match': '18', 'icon': 'Finland/Finland-18.png'}]
 
     # http://en.wikipedia.org/wiki/Television_content_rating_systems
     tvCassificationsNames = [{'id': 1, 'name': '%s - TV-Y', 'lang': 32302, 'match': 'TV-Y', 'icon': 'USA/USA-TV-Y.png'},  # USA
@@ -170,7 +177,13 @@ class Settings():
                              {'id': 27, 'name': '%s - 6', 'lang': 32308, 'match': '6', 'icon': 'Hungary/Hungary-TV-6.png'},
                              {'id': 28, 'name': '%s - 12', 'lang': 32308, 'match': '12', 'icon': 'Hungary/Hungary-TV-12.png'},
                              {'id': 29, 'name': '%s - 16', 'lang': 32308, 'match': '16', 'icon': 'Hungary/Hungary-TV-16.png'},
-                             {'id': 30, 'name': '%s - 18', 'lang': 32308, 'match': '18', 'icon': 'Hungary/Hungary-TV-18.png'}]
+                             {'id': 30, 'name': '%s - 18', 'lang': 32308, 'match': '18', 'icon': 'Hungary/Hungary-TV-18.png'},
+                             # Finland
+                             {'id': 31, 'name': '%s - S', 'lang': 32312, 'match': 'S', 'icon': 'Finland/Finland-S.png'},
+                             {'id': 32, 'name': '%s - 7', 'lang': 32312, 'match': '7', 'icon': 'Finland/Finland-7.png'},
+                             {'id': 33, 'name': '%s - 12', 'lang': 32312, 'match': '12', 'icon': 'Finland/Finland-12.png'},
+                             {'id': 34, 'name': '%s - 16', 'lang': 32312, 'match': '16', 'icon': 'Finland/Finland-16.png'},
+                             {'id': 35, 'name': '%s - 18', 'lang': 32312, 'match': '18', 'icon': 'Finland/Finland-18.png'}]
 
     @staticmethod
     def reloadSettings():

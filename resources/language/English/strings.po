@@ -323,3 +323,7 @@ msgstr ""
 msgctxt "#32311"
 msgid "Sweden"
 msgstr ""
+
+msgctxt "#32312"
+msgid "Finland"
+msgstr ""
