@@ -327,3 +327,11 @@ msgstr ""
 msgctxt "#32312"
 msgid "Finland"
 msgstr ""
+
+msgctxt "#32313"
+msgid "Canada"
+msgstr ""
+
+msgctxt "#32314"
+msgid "Quebec"
+msgstr ""

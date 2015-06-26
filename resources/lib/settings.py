@@ -55,7 +55,8 @@ class Settings():
              {'lang': 32309, 'icon': 'Denmark/Denmark-flag.png'},
              {'lang': 32310, 'icon': 'Norway/Norway-flag.png'},
              {'lang': 32311, 'icon': 'Sweden/Sweden-flag.png'},
-             {'lang': 32312, 'icon': 'Finland/Finland-flag.png'}]
+             {'lang': 32312, 'icon': 'Finland/Finland-flag.png'},
+             {'lang': 32313, 'icon': 'Canada/Canada-flag.png'}]
 
     # http://en.wikipedia.org/wiki/Motion_picture_rating_system
     movieCassificationsNames = [{'id': 1, 'name': '%s - U', 'lang': 32301, 'match': 'U', 'icon': 'UK/UK-U.png'},  # UK
@@ -141,7 +142,17 @@ class Settings():
                                 {'id': 69, 'name': '%s - 7', 'lang': 32312, 'match': '7', 'icon': 'Finland/Finland-7.png'},
                                 {'id': 69, 'name': '%s - 12', 'lang': 32312, 'match': '12', 'icon': 'Finland/Finland-12.png'},
                                 {'id': 69, 'name': '%s - 16', 'lang': 32312, 'match': '16', 'icon': 'Finland/Finland-16.png'},
-                                {'id': 69, 'name': '%s - 18', 'lang': 32312, 'match': '18', 'icon': 'Finland/Finland-18.png'}]
+                                {'id': 69, 'name': '%s - 18', 'lang': 32312, 'match': '18', 'icon': 'Finland/Finland-18.png'},
+                                # Canada
+                                {'id': 70, 'name': '%s - G', 'lang': 32313, 'match': 'G', 'icon': 'Canada/Canada-G.png'},
+                                {'id': 71, 'name': '%s - PG', 'lang': 32313, 'match': 'PG', 'icon': 'Canada/Canada-PG.png'},
+                                {'id': 72, 'name': '%s - 14A', 'lang': 32313, 'match': '14A', 'icon': 'Canada/Canada-14A.png'},
+                                {'id': 73, 'name': '%s - 18A', 'lang': 32313, 'match': '18A', 'icon': 'Canada/Canada-18A.png'},
+                                {'id': 74, 'name': '%s - R', 'lang': 32313, 'match': 'R', 'icon': 'Canada/Canada-R.png'},
+                                {'id': 75, 'name': '%%s (%s) - G' % __addon__.getLocalizedString(32314), 'lang': 32313, 'match': 'G', 'icon': 'Canada/Canada-Quebec-G.png'},
+                                {'id': 76, 'name': '%%s (%s) - 13+' % __addon__.getLocalizedString(32314), 'lang': 32313, 'match': '13+', 'icon': 'Canada/Canada-Quebec-13.png'},
+                                {'id': 77, 'name': '%%s (%s) - 16+' % __addon__.getLocalizedString(32314), 'lang': 32313, 'match': '16+', 'icon': 'Canada/Canada-Quebec-16.png'},
+                                {'id': 78, 'name': '%%s (%s) - 18+' % __addon__.getLocalizedString(32314), 'lang': 32313, 'match': '18+', 'icon': 'Canada/Canada-Quebec-18.png'}]
 
     # http://en.wikipedia.org/wiki/Television_content_rating_systems
     tvCassificationsNames = [{'id': 1, 'name': '%s - TV-Y', 'lang': 32302, 'match': 'TV-Y', 'icon': 'USA/USA-TV-Y.png'},  # USA
@@ -183,7 +194,18 @@ class Settings():
                              {'id': 32, 'name': '%s - 7', 'lang': 32312, 'match': '7', 'icon': 'Finland/Finland-7.png'},
                              {'id': 33, 'name': '%s - 12', 'lang': 32312, 'match': '12', 'icon': 'Finland/Finland-12.png'},
                              {'id': 34, 'name': '%s - 16', 'lang': 32312, 'match': '16', 'icon': 'Finland/Finland-16.png'},
-                             {'id': 35, 'name': '%s - 18', 'lang': 32312, 'match': '18', 'icon': 'Finland/Finland-18.png'}]
+                             {'id': 35, 'name': '%s - 18', 'lang': 32312, 'match': '18', 'icon': 'Finland/Finland-18.png'},
+                             # Canada
+                             {'id': 36, 'name': '%s - C', 'lang': 32313, 'match': 'C', 'icon': 'Canada/Canada-TV-C.png'},
+                             {'id': 37, 'name': '%s - C8', 'lang': 32313, 'match': 'C8', 'icon': 'Canada/Canada-TV-C8.png'},
+                             {'id': 38, 'name': '%s - G', 'lang': 32313, 'match': 'G', 'icon': 'Canada/Canada-TV-G.png'},
+                             {'id': 39, 'name': '%s - PG', 'lang': 32313, 'match': 'PG', 'icon': 'Canada/Canada-TV-PG.png'},
+                             {'id': 40, 'name': '%s - 14+', 'lang': 32313, 'match': '14+', 'icon': 'Canada/Canada-TV-14.png'},
+                             {'id': 41, 'name': '%s - 18+', 'lang': 32313, 'match': '18+', 'icon': 'Canada/Canada-TV-18.png'},
+                             {'id': 42, 'name': '%%s (%s) - G' % __addon__.getLocalizedString(32314), 'lang': 32313, 'match': 'G', 'icon': 'Canada/Canada-Quebec-G.png'},
+                             {'id': 43, 'name': '%%s (%s) - 13+' % __addon__.getLocalizedString(32314), 'lang': 32313, 'match': '13+', 'icon': 'Canada/Canada-Quebec-13.png'},
+                             {'id': 44, 'name': '%%s (%s) - 16+' % __addon__.getLocalizedString(32314), 'lang': 32313, 'match': '16+', 'icon': 'Canada/Canada-Quebec-16.png'},
+                             {'id': 45, 'name': '%%s (%s) - 18+' % __addon__.getLocalizedString(32314), 'lang': 32313, 'match': '18+', 'icon': 'Canada/Canada-Quebec-18.png'}]
 
     @staticmethod
     def reloadSettings():
