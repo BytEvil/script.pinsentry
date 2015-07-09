@@ -226,19 +226,29 @@ class Settings():
             pinSettingsValue = "%s%d" % (pinSettingsValue, pinLevel)
         __addon__.setSetting(pinSettingsValue, encryptedPin)
 
-        # Flag if one of the pin numbers is not set
+    @staticmethod
+    def checkPinSettings():
+        # Check all of the pin settings to see if they are set
+        # If they are not, then we need to enable the warning
+
+        # Check how many pins are being used
+        numLevels = Settings.getNumberOfLevels()
+
+        # Clear any of the pins that are not active
+        clearPinNum = 5
+        while numLevels < clearPinNum:
+            log("SetPin: Clearing pin %d" % clearPinNum)
+            Settings.setPinValue("", clearPinNum)
+            clearPinNum = clearPinNum - 1
+
+        # Now check the remaining pins to see if they are set
         allPinsSet = True
-        if not Settings.isPinSet():
-            allPinsSet = False
-        else:
-            # Check how many pins are being used
-            numLevels = Settings.getNumberOfLevels()
-            pinCheck = 2
-            while pinCheck <= numLevels:
-                if not Settings.isPinSet(pinCheck):
-                    allPinsSet = False
-                    break
-                pinCheck = pinCheck + 1
+        pinCheck = 1
+        while pinCheck <= numLevels:
+            if not Settings.isPinSet(pinCheck):
+                allPinsSet = False
+                break
+            pinCheck = pinCheck + 1
 
         if allPinsSet:
             # This is an internal fudge so that we can display a warning if the pin is not set
@@ -273,6 +283,19 @@ class Settings():
         inputPinEncrypt = Settings.encryptPin(inputPin)
         if inputPinEncrypt == __addon__.getSetting(pinSettingsValue):
             return True
+        return False
+
+    @staticmethod
+    def checkPinClash(newPin, pinLevel=1):
+        # Check all the existing pins to make sure they are not the same
+        pinCheck = Settings.getNumberOfLevels()
+        while pinCheck > 0:
+            if pinCheck != pinLevel:
+                if Settings.isPinSet(pinCheck):
+                    if Settings.isPinCorrect(newPin, pinCheck):
+                        # Found a matching pin, so report a clash
+                        return True
+            pinCheck = pinCheck - 1
         return False
 
     @staticmethod

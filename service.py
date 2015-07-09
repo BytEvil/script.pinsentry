@@ -637,6 +637,9 @@ class NavigationRestrictions():
 if __name__ == '__main__':
     log("Starting Pin Sentry Service")
 
+    # Tidy up any old pins and set any warnings when we first start
+    Settings.checkPinSettings()
+
     # Make sure that the database exists if this is the first time
     pinDB = PinSentryDB()
     pinDB.createOrUpdateDB()

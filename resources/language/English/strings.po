@@ -116,7 +116,11 @@ msgctxt "#32023"
 msgid "Allow Direction Keys In Pin Code"
 msgstr ""
 
-#empty strings from id 32024 to 32100
+msgctxt "#32024"
+msgid "*** NOT SET ***"
+msgstr ""
+
+#empty strings from id 32025 to 32100
 
 msgctxt "#32101"
 msgid "Backspace"
@@ -162,7 +166,9 @@ msgctxt "#32111"
 msgid "Only Restrict File Sources During Navigation"
 msgstr ""
 
-#empty string with id 32112
+msgctxt "#32112"
+msgid "Entered pin clashes with an existing pin."
+msgstr ""
 
 msgctxt "#32113"
 msgid "Clean Database"
