@@ -640,6 +640,7 @@ class UserPinControl():
         self.allowedEndTime = 2439  # Number of minutes in a day
         self.usedViewingLimit = 0
         self.startedViewing = 0
+        self.screensaverStart = 0
 
     def startupCheck(self):
         # When the system starts up we need to check to see if User restriction is enabled
@@ -745,18 +746,34 @@ class UserPinControl():
             self.shutdown(32130)
             return False
 
-        # Check to see if we need to update the record for how long the user has already been viewing
-        viewingLimit = Settings.getUserViewingLimit(self.userId)
-        timeUsed = currentTime - self.startedViewing
-        log("UserPinControl: Time used by user is %d" % timeUsed)
+        # Check if the screensaver is running, if so we need to make sure we do not
+        # class that as time used by the user
+        if xbmc.getCondVisibility("System.ScreenSaverActive"):
+            if self.screensaverStart < 1:
+                self.screensaverStart = currentTime
+        else:
+            # Not the screensaver, check to see if this is the first check
+            # after the screensaver stopped
+            if self.screensaverStart > 0:
+                screensaverDuration = currentTime - self.screensaverStart
+                self.screensaverStart = 0
+                log("UserPinControl: Updating duration for screensaver, %d minutes" % screensaverDuration)
+                # Now we roll the time forward that we started viewing so that
+                # we are not counting the screensaver
+                self.startedViewing = self.startedViewing + screensaverDuration
 
-        # Update the settings record for how much this user has viewed so far
-        Settings.setUserViewingUsedTime(self.userId, timeUsed)
+            # Check to see if we need to update the record for how long the user has already been viewing
+            viewingLimit = Settings.getUserViewingLimit(self.userId)
+            timeUsed = currentTime - self.startedViewing
+            log("UserPinControl: Time used by user is %d" % timeUsed)
 
-        # Now check to see if the user has exceeded their limit
-        if timeUsed >= viewingLimit:
-            self.shutdown(32133)
-            return False
+            # Update the settings record for how much this user has viewed so far
+            Settings.setUserViewingUsedTime(self.userId, timeUsed)
+
+            # Now check to see if the user has exceeded their limit
+            if timeUsed >= viewingLimit:
+                self.shutdown(32133)
+                return False
 
         return True
 
