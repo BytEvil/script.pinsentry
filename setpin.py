@@ -77,6 +77,40 @@ def setPin(pinLevel=1):
                 xbmcgui.Dialog().ok(__addon__.getLocalizedString(32001).encode('utf-8'), __addon__.getLocalizedString(32108).encode('utf-8'))
 
 
+# Function to set the user pin
+def setUserPin(pinId):
+    # Prompt the user for the pin
+    numberpad = NumberPad.createNumberPad(32106)
+    numberpad.doModal()
+
+    # Get the code that the user entered
+    enteredPin = numberpad.getPin()
+    del numberpad
+
+    # Check to ensure the user has either set no password or one the correct length
+    if (len(enteredPin) > 0) and (Settings.getPinLength() > len(enteredPin)):
+        log("SetPin: Incorrect length pin entered, expecting %d digits" % Settings.getPinLength())
+        xbmcgui.Dialog().ok(__addon__.getLocalizedString(32001).encode('utf-8'), __addon__.getLocalizedString(32109).encode('utf-8'))
+    elif Settings.checkUserPinClash(enteredPin, pinId):
+        # This pin clashes with an existing pin
+        log("SetPin: Entered pin clashes with an existing pin")
+        xbmcgui.Dialog().ok(__addon__.getLocalizedString(32001).encode('utf-8'), __addon__.getLocalizedString(32112).encode('utf-8'))
+    else:
+        # Now double check the value the user entered
+        numberpad = NumberPad.createNumberPad(32107)
+        numberpad.doModal()
+
+        # Get the code that the user entered
+        enteredPin2 = numberpad.getPin()
+        del numberpad
+
+        if enteredPin == enteredPin2:
+            Settings.setUserPinValue(enteredPin, pinId)
+        else:
+            log("SetPin: Pin entry different, first: %s, second %s" % (enteredPin, enteredPin2))
+            xbmcgui.Dialog().ok(__addon__.getLocalizedString(32001).encode('utf-8'), __addon__.getLocalizedString(32108).encode('utf-8'))
+
+
 ##################################
 # Main of the PinSentry Setter
 ##################################
@@ -115,6 +149,7 @@ if __name__ == '__main__':
                 setPin(select + 1)
     else:
         log("SetPin: Setting pin for %s" % sys.argv[1])
+        setUserPin(sys.argv[1])
 
     # Tidy up any old pins and set any warnings
     Settings.checkPinSettings()

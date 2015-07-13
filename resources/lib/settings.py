@@ -2,6 +2,7 @@
 import os
 import hashlib
 import time
+from datetime import date
 import xbmc
 import xbmcaddon
 
@@ -227,6 +228,18 @@ class Settings():
         __addon__.setSetting(pinSettingsValue, encryptedPin)
 
     @staticmethod
+    def setUserPinValue(newPin, pinId):
+        encryptedPin = ""
+        pinSet = 'false'
+        if len(newPin) > 0:
+            # Before setting the pin, encrypt it
+            encryptedPin = Settings.encryptPin(newPin)
+            pinSet = 'true'
+
+        __addon__.setSetting(pinId, encryptedPin)
+        __addon__.setSetting("%sSet" % pinId, pinSet)
+
+    @staticmethod
     def checkPinSettings():
         # Check all of the pin settings to see if they are set
         # If they are not, then we need to enable the warning
@@ -286,6 +299,18 @@ class Settings():
         return False
 
     @staticmethod
+    def isUserPinCorrect(inputPin, pinId):
+        # Make sure if the pin has not been set we do not lock the user out
+        storedPin = __addon__.getSetting(pinId)
+        if storedPin in [None, ""]:
+            return True
+        # First encrypt the pin that has been passed in
+        inputPinEncrypt = Settings.encryptPin(inputPin)
+        if inputPinEncrypt == storedPin:
+            return True
+        return False
+
+    @staticmethod
     def checkPinClash(newPin, pinLevel=1):
         # Check all the existing pins to make sure they are not the same
         pinCheck = Settings.getNumberOfLevels()
@@ -296,6 +321,30 @@ class Settings():
                         # Found a matching pin, so report a clash
                         return True
             pinCheck = pinCheck - 1
+        return False
+
+    @staticmethod
+    def checkUserPinClash(newPin, pinId):
+        numUsers = Settings.getNumberOfLimitedUsers()
+        # Check all the existing pins to make sure they are not the same
+        if (numUsers > 0) and (pinId != 'unrestrictedUserPin'):
+            if Settings.isUserPinCorrect(newPin, 'unrestrictedUserPin'):
+                return True
+        if (numUsers > 0) and (pinId != 'user1Pin'):
+            if Settings.isUserPinCorrect(newPin, 'user1Pin'):
+                return True
+        if (numUsers > 1) and (pinId != 'user2Pin'):
+            if Settings.isUserPinCorrect(newPin, 'user2Pin'):
+                return True
+        if (numUsers > 2) and (pinId != 'user3Pin'):
+            if Settings.isUserPinCorrect(newPin, 'user3Pin'):
+                return True
+        if (numUsers > 3) and (pinId != 'user4Pin'):
+            if Settings.isUserPinCorrect(newPin, 'user4Pin'):
+                return True
+        if (numUsers > 4) and (pinId != 'user5Pin'):
+            if Settings.isUserPinCorrect(newPin, 'user5Pin'):
+                return True
         return False
 
     @staticmethod
@@ -312,6 +361,29 @@ class Settings():
         if not aPinSet:
             return 5
         return -1
+
+    @staticmethod
+    def getUserForPin(inputPin):
+        numUsers = Settings.getNumberOfLimitedUsers()
+        # Check all the users to see if this pin matches any
+        if numUsers > 0:
+            if Settings.isUserPinCorrect(inputPin, 'unrestrictedUserPin'):
+                return 'unrestrictedUserPin'
+            if Settings.isUserPinCorrect(inputPin, 'user1Pin'):
+                return 'user1Pin'
+        if numUsers > 1:
+            if Settings.isUserPinCorrect(inputPin, 'user2Pin'):
+                return 'user2Pin'
+        if numUsers > 2:
+            if Settings.isUserPinCorrect(inputPin, 'user3Pin'):
+                return 'user3Pin'
+        if numUsers > 3:
+            if Settings.isUserPinCorrect(inputPin, 'user4Pin'):
+                return 'user4Pin'
+        if numUsers > 4:
+            if Settings.isUserPinCorrect(inputPin, 'user5Pin'):
+                return 'user5Pin'
+        return None
 
     @staticmethod
     def getInvalidPinNotificationType():
@@ -454,3 +526,62 @@ class Settings():
                 return pinCheck
             pinCheck = pinCheck - 1
         return -1
+
+    @staticmethod
+    def getNumberOfLimitedUsers():
+        return int(__addon__.getSetting("numberOfLimitedUsers"))
+
+    @staticmethod
+    def getUserStartTime(userId):
+        startTimeTag = "%sStartTime" % userId
+        # Get the start time
+        startTimeStr = __addon__.getSetting(startTimeTag)
+        startTimeSplit = startTimeStr.split(':')
+        startTime = (int(startTimeSplit[0]) * 60) + int(startTimeSplit[1])
+        return (startTime, startTimeStr)
+
+    @staticmethod
+    def getUserEndTime(userId):
+        endTimeTag = "%sEndTime" % userId
+        # Get the end time
+        endTimeStr = __addon__.getSetting(endTimeTag)
+        endTimeSplit = endTimeStr.split(':')
+        endTime = (int(endTimeSplit[0]) * 60) + int(endTimeSplit[1])
+        return (endTime, endTimeStr)
+
+    @staticmethod
+    def getUserViewingLimit(userId):
+        viewingLimitTag = "%sViewingLimit" % userId
+        viewingLimit = int(__addon__.getSetting(viewingLimitTag))
+        return viewingLimit
+
+    @staticmethod
+    def getUserViewingUsedTime(userId):
+        lastLimitDataTag = "%sLastLimitData" % userId
+        lastLimitData = __addon__.getSetting(lastLimitDataTag)
+
+        # Check to see if the last date that viewing limit was set is still today
+        todaysDate = date.today().strftime("%d/%m/%y")
+
+        # If not from today, then we have not used any for this user
+        if todaysDate != lastLimitData:
+            return 0
+
+        # Now check to see how much the user has already used today
+        limitUsedTag = "%sLimitUsed" % userId
+        limitUsed = __addon__.getSetting(limitUsedTag)
+
+        if limitUsed in [None, ""]:
+            return 0
+        return int(limitUsed)
+
+    @staticmethod
+    def setUserViewingUsedTime(userId, usedViewingTime):
+        # Store the date when we last viewed something
+        todaysDate = date.today().strftime("%d/%m/%y")
+        lastLimitDataTag = "%sLastLimitData" % userId
+        __addon__.setSetting(lastLimitDataTag, todaysDate)
+
+        # Now store the amount of time we have used
+        limitUsedTag = "%sLimitUsed" % userId
+        __addon__.setSetting(limitUsedTag, str(usedViewingTime))

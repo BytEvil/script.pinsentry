@@ -39,4 +39,68 @@
     	<setting label="32003" type="lsep"/>
 		<setting id="logEnabled" type="bool" label="32004" default="false"/>
 	</category>
+	<category label="32025">
+		<setting id="numberOfLimitedUsers" label="32026" type="enum" values="0|1|2|3|4|5" default="0" />
+
+    	<setting label="32027" type="lsep" visible="gt(-1,0)"/>
+		<setting id="unrestrictedUserPinSet" type="bool" visible="false" option="hidden" label="Pin Value Set" default="false" />
+		<setting id="unrestrictedUserPin" type="text" visible="false" option="hidden" label="Pin Value" default="" />
+		<setting id="unrestrictedUserPinWarning" subsetting="true" enable="false" visible="eq(-2,false) + gt(-4,0)" type="text" label="32008" default="" />
+		<setting label="32007" subsetting="true" visible="gt(-5,0)" type="action" option="close" action="RunScript($CWD/setpin.py,unrestrictedUserPin)"/>
+
+    	<setting label="32028" type="lsep" visible="gt(-6,0)"/>
+		<setting id="user1PinSet" type="bool" visible="false" option="hidden" label="Pin Value Set" default="false" />
+		<setting id="user1Pin" type="text" visible="false" option="hidden" label="Pin Value" default="" />
+		<setting id="user1PinWarning" subsetting="true" enable="false" visible="eq(-2,false) + gt(-9,0)" type="text" label="32008" default="" />
+		<setting label="32007" subsetting="true" visible="gt(-10,0)" type="action" option="close" action="RunScript($CWD/setpin.py,user1Pin)"/>
+		<setting id="user1PinStartTime" visible="gt(-11,0)" subsetting="true" type="time" label="32117" default="00:00"/>
+		<setting id="user1PinEndTime" visible="gt(-12,0)" subsetting="true" type="time" label="32118" default="23:59"/>
+		<setting id="user1PinViewingLimit" visible="gt(-13,0)" subsetting="true" type="slider" label="32033" default="60" range="15,15,360" option="int"/>
+		<setting id="user1PinLastLimitData" type="text" visible="false" option="hidden" label="Last time the daily limit used was set" default="" />
+		<setting id="user1PinLimitUsed" type="text" visible="false" option="hidden" label="How much of the daily limit has been used" default="0" />
+
+    	<setting label="32029" type="lsep" visible="gt(-16,1)"/>
+		<setting id="user2PinSet" type="bool" visible="false" option="hidden" label="Pin Value Set" default="false" />
+		<setting id="user2Pin" type="text" visible="false" option="hidden" label="Pin Value" default="" />
+		<setting id="user2PinWarning" subsetting="true" enable="false" visible="eq(-2,false) + gt(-19,1)" type="text" label="32008" default="" />
+		<setting label="32007" subsetting="true" visible="gt(-20,1)" type="action" option="close" action="RunScript($CWD/setpin.py,user2Pin)"/>
+		<setting id="user2PinStartTime" visible="gt(-21,1)" subsetting="true" type="time" label="32117" default="00:00"/>
+		<setting id="user2PinEndTime" visible="gt(-22,1)" subsetting="true" type="time" label="32118" default="23:59"/>
+		<setting id="user2PinViewingLimit" visible="gt(-23,1)" subsetting="true" type="slider" label="32033" default="60" range="15,15,360" option="int"/>
+		<setting id="user2PinLastLimitData" type="text" visible="false" option="hidden" label="Last time the daily limit used was set" default="" />
+		<setting id="user2PinLimitUsed" type="text" visible="false" option="hidden" label="How much of the daily limit has been used" default="0" />
+
+    	<setting label="32030" type="lsep" visible="gt(-26,2)"/>
+		<setting id="user3PinSet" type="bool" visible="false" option="hidden" label="Pin Value Set" default="false" />
+		<setting id="user3Pin" type="text" visible="false" option="hidden" label="Pin Value" default="" />
+		<setting id="user3PinWarning" subsetting="true" enable="false" visible="eq(-2,false) + gt(-29,2)" type="text" label="32008" default="" />
+		<setting label="32007" subsetting="true" visible="gt(-30,2)" type="action" option="close" action="RunScript($CWD/setpin.py,user3Pin)"/>
+		<setting id="user3PinStartTime" visible="gt(-31,2)" subsetting="true" type="time" label="32117" default="00:00"/>
+		<setting id="user3PinEndTime" visible="gt(-32,2)" subsetting="true" type="time" label="32118" default="23:59"/>
+		<setting id="user3PinViewingLimit" visible="gt(-33,2)" subsetting="true" type="slider" label="32033" default="60" range="15,15,360" option="int"/>
+		<setting id="user3PinLastLimitData" type="text" visible="false" option="hidden" label="Last time the daily limit used was set" default="" />
+		<setting id="user3PinLimitUsed" type="text" visible="false" option="hidden" label="How much of the daily limit has been used" default="0" />
+
+    	<setting label="32031" type="lsep" visible="gt(-36,3)"/>
+		<setting id="user4PinSet" type="bool" visible="false" option="hidden" label="Pin Value Set" default="false" />
+		<setting id="user4Pin" type="text" visible="false" option="hidden" label="Pin Value" default="" />
+		<setting id="user4PinWarning" subsetting="true" enable="false" visible="eq(-2,false) + gt(-39,3)" type="text" label="32008" default="" />
+		<setting label="32007" subsetting="true" visible="gt(-40,3)" type="action" option="close" action="RunScript($CWD/setpin.py,user4Pin)"/>
+		<setting id="user4PinStartTime" visible="gt(-41,3)" subsetting="true" type="time" label="32117" default="00:00"/>
+		<setting id="user4PinEndTime" visible="gt(-42,3)" subsetting="true" type="time" label="32118" default="23:59"/>
+		<setting id="user4PinViewingLimit" visible="gt(-43,3)" subsetting="true" type="slider" label="32033" default="60" range="15,15,360" option="int"/>
+		<setting id="user4PinLastLimitData" type="text" visible="false" option="hidden" label="Last time the daily limit used was set" default="" />
+		<setting id="user4PinLimitUsed" type="text" visible="false" option="hidden" label="How much of the daily limit has been used" default="0" />
+
+    	<setting label="32032" type="lsep" visible="gt(-46,4)"/>
+		<setting id="user5PinSet" type="bool" visible="false" option="hidden" label="Pin Value Set" default="false" />
+		<setting id="user5Pin" type="text" visible="false" option="hidden" label="Pin Value" default="" />
+		<setting id="user5PinWarning" subsetting="true" enable="false" visible="eq(-2,false) + gt(-49,4)" type="text" label="32008" default="" />
+		<setting label="32007" subsetting="true" visible="gt(-50,4)" type="action" option="close" action="RunScript($CWD/setpin.py,user5Pin)"/>
+		<setting id="user5PinStartTime" visible="gt(-51,4)" subsetting="true" type="time" label="32117" default="00:00"/>
+		<setting id="user5PinEndTime" visible="gt(-52,4)" subsetting="true" type="time" label="32118" default="23:59"/>
+		<setting id="user5PinViewingLimit" visible="gt(-53,4)" subsetting="true" type="slider" label="32033" default="60" range="15,15,360" option="int"/>
+		<setting id="user5PinLastLimitData" type="text" visible="false" option="hidden" label="Last time the daily limit used was set" default="" />
+		<setting id="user5PinLimitUsed" type="text" visible="false" option="hidden" label="How much of the daily limit has been used" default="0" />
+	</category>
 </settings>
