@@ -299,11 +299,16 @@ class Settings():
         return False
 
     @staticmethod
-    def isUserPinCorrect(inputPin, pinId):
+    def isUserPinCorrect(inputPin, pinId, blankIsCorrect=True):
         # Make sure if the pin has not been set we do not lock the user out
         storedPin = __addon__.getSetting(pinId)
         if storedPin in [None, ""]:
-            return True
+            # Check if we are treating blank as a match to everything
+            if blankIsCorrect:
+                return True
+            else:
+                return False
+
         # First encrypt the pin that has been passed in
         inputPinEncrypt = Settings.encryptPin(inputPin)
         if inputPinEncrypt == storedPin:
@@ -328,22 +333,22 @@ class Settings():
         numUsers = Settings.getNumberOfLimitedUsers()
         # Check all the existing pins to make sure they are not the same
         if (numUsers > 0) and (pinId != 'unrestrictedUserPin'):
-            if Settings.isUserPinCorrect(newPin, 'unrestrictedUserPin'):
+            if Settings.isUserPinCorrect(newPin, 'unrestrictedUserPin', False):
                 return True
         if (numUsers > 0) and (pinId != 'user1Pin'):
-            if Settings.isUserPinCorrect(newPin, 'user1Pin'):
+            if Settings.isUserPinCorrect(newPin, 'user1Pin', False):
                 return True
         if (numUsers > 1) and (pinId != 'user2Pin'):
-            if Settings.isUserPinCorrect(newPin, 'user2Pin'):
+            if Settings.isUserPinCorrect(newPin, 'user2Pin', False):
                 return True
         if (numUsers > 2) and (pinId != 'user3Pin'):
-            if Settings.isUserPinCorrect(newPin, 'user3Pin'):
+            if Settings.isUserPinCorrect(newPin, 'user3Pin', False):
                 return True
         if (numUsers > 3) and (pinId != 'user4Pin'):
-            if Settings.isUserPinCorrect(newPin, 'user4Pin'):
+            if Settings.isUserPinCorrect(newPin, 'user4Pin', False):
                 return True
         if (numUsers > 4) and (pinId != 'user5Pin'):
-            if Settings.isUserPinCorrect(newPin, 'user5Pin'):
+            if Settings.isUserPinCorrect(newPin, 'user5Pin', False):
                 return True
         return False
 
