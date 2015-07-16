@@ -40,6 +40,7 @@
 		<setting id="logEnabled" type="bool" label="32004" default="false"/>
 	</category>
 	<category label="32025">
+		<setting id="warnExpiringTime" label="32034" type="slider" default="0" range="0,1,15" option="int" />
 		<setting id="numberOfLimitedUsers" label="32026" type="enum" values="0|1|2|3|4|5" default="0" />
 
     	<setting label="32027" type="lsep" visible="gt(-1,0)"/>

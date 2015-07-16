@@ -590,3 +590,7 @@ class Settings():
         # Now store the amount of time we have used
         limitUsedTag = "%sLimitUsed" % userId
         __addon__.setSetting(limitUsedTag, str(usedViewingTime))
+
+    @staticmethod
+    def getWarnExpiringTime():
+        return int(float(__addon__.getSetting('warnExpiringTime')))

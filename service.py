@@ -641,6 +641,7 @@ class UserPinControl():
         self.usedViewingLimit = 0
         self.startedViewing = 0
         self.screensaverStart = 0
+        self.warningDisplayed = False
 
     def startupCheck(self):
         # When the system starts up we need to check to see if User restriction is enabled
@@ -774,6 +775,13 @@ class UserPinControl():
             if timeUsed >= viewingLimit:
                 self.shutdown(32133)
                 return False
+
+            # Check if we need to warn the user that the time is running out
+            warningTime = Settings.getWarnExpiringTime()
+            if (not self.warningDisplayed) and ((timeUsed + warningTime) >= viewingLimit):
+                self.warningDisplayed = True
+                msg = "%d %s" % (warningTime, __addon__.getLocalizedString(32134))
+                xbmcgui.Dialog().notification(__addon__.getLocalizedString(32001).encode('utf-8'), msg, __icon__, 3000, False)
 
         return True
 

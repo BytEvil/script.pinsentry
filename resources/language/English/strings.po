@@ -156,7 +156,11 @@ msgctxt "#32033"
 msgid "Daily Viewing Allowance (Minutes)"
 msgstr ""
 
-#empty strings from id 32034 to 32100
+msgctxt "#32034"
+msgid "Warn User When Remaining Time Is (Minutes)"
+msgstr ""
+
+#empty strings from id 32035 to 32100
 
 msgctxt "#32101"
 msgid "Backspace"
@@ -290,7 +294,11 @@ msgctxt "#32133"
 msgid "Viewing allowance has been exceeded"
 msgstr ""
 
-#empty strings from id 32134 to 32200
+msgctxt "#32134"
+msgid "minutes remaining"
+msgstr ""
+
+#empty strings from id 32135 to 32200
 
 msgctxt "#32201"
 msgid "Movies"
