@@ -701,19 +701,9 @@ class UserPinControl():
             # Load the settings for this user
             self.allowedStartTime, displayStartTime = Settings.getUserStartTime(self.userId)
             self.allowedEndTime, displayEndTime = Settings.getUserEndTime(self.userId)
-            viewingLimit = Settings.getUserViewingLimit(self.userId)
             self.usedViewingLimit = Settings.getUserViewingUsedTime(self.userId)
 
-            # Work out how much time is remaining
-            displayRemainingTime = viewingLimit - self.usedViewingLimit
-            if displayRemainingTime < 0:
-                displayRemainingTime = 0
-
-            # Do a notification to let the user know how long they have left today
-            summaryLimit = "%s:    %d" % (__addon__.getLocalizedString(32033), viewingLimit)
-            summaryLimitRemaining = "%s:    %d" % (__addon__.getLocalizedString(32131), displayRemainingTime)
-            summaryAccess = "%s:    %s - %s" % (__addon__.getLocalizedString(32132), displayStartTime, displayEndTime)
-            xbmcgui.Dialog().ok(__addon__.getLocalizedString(32001).encode('utf-8'), summaryLimit, summaryLimitRemaining, summaryAccess)
+            self.displaySummary()
 
             # Now we can record when this user started viewing in this session
             localTime = time.localtime()
@@ -724,6 +714,34 @@ class UserPinControl():
             self.startedViewing = self.startedViewing - self.usedViewingLimit
 
             log("UserPinControl: Time already used for user is %d" % self.usedViewingLimit)
+
+            # Record that we are running as a restricted user so that the default script
+            # can display the status of how long is left when it is selected
+            xbmcgui.Window(10000).setProperty("PinSentry_RestrictedUser", self.userId)
+
+    def checkDisplayStatus(self):
+        # This method will display the current time remaining if the property is set
+        # by the script being run as a program
+        if xbmcgui.Window(10000).getProperty("PinSentry_DisplayStatus") not in ["", None]:
+            xbmcgui.Window(10000).clearProperty("PinSentry_DisplayStatus")
+            self.displaySummary()
+
+    def displaySummary(self):
+        # Load the settings for this user
+        allowedStartTime, displayStartTime = Settings.getUserStartTime(self.userId)
+        allowedEndTime, displayEndTime = Settings.getUserEndTime(self.userId)
+        viewingLimit = Settings.getUserViewingLimit(self.userId)
+
+        # Work out how much time is remaining
+        displayRemainingTime = viewingLimit - self.usedViewingLimit
+        if displayRemainingTime < 0:
+            displayRemainingTime = 0
+
+        # Do a notification to let the user know how long they have left today
+        summaryLimit = "%s:    %d" % (__addon__.getLocalizedString(32033), viewingLimit)
+        summaryLimitRemaining = "%s:    %d" % (__addon__.getLocalizedString(32131), displayRemainingTime)
+        summaryAccess = "%s:    %s - %s" % (__addon__.getLocalizedString(32132), displayStartTime, displayEndTime)
+        xbmcgui.Dialog().ok(__addon__.getLocalizedString(32001).encode('utf-8'), summaryLimit, summaryLimitRemaining, summaryAccess)
 
     # Check the current user access status
     def check(self):
@@ -845,6 +863,7 @@ if __name__ == '__main__':
             loopsUntilUserControlCheck = loopsUntilUserControlCheck - 1
 
         xbmc.sleep(100)
+        userCtrl.checkDisplayStatus()
 
         # Check if the Pin is set, as no point prompting if it is not
         if PinSentry.isPinSentryEnabled():
