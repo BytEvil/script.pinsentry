@@ -564,9 +564,7 @@ class NavigationRestrictions():
             log("NavigationRestrictions: Allowed access to settings")
             # Allow the user 5 minutes to change the settings
             self.canChangeSettings = int(time.time()) + 300
-
-            cmd = 'Notification("{0}", "{1}", 3000, "{2}")'.format(__addon__.getLocalizedString(32001).encode('utf-8'), __addon__.getLocalizedString(32110).encode('utf-8'), __icon__)
-            xbmc.executebuiltin(cmd)
+            xbmcgui.Dialog().notification(__addon__.getLocalizedString(32001).encode('utf-8'), __addon__.getLocalizedString(32110).encode('utf-8'), __icon__, 3000, False)
 
             # Open the dialogs that should be shown, we don't reopen the Information dialog
             # as if we do the Close Dialog will not close it and the pin screen will not show correctly
@@ -731,6 +729,7 @@ class UserPinControl():
         allowedStartTime, displayStartTime = Settings.getUserStartTime(self.userId)
         allowedEndTime, displayEndTime = Settings.getUserEndTime(self.userId)
         viewingLimit = Settings.getUserViewingLimit(self.userId)
+        usersName = Settings.getUserName(self.userId)
 
         # Work out how much time is remaining
         displayRemainingTime = viewingLimit - self.usedViewingLimit
@@ -738,10 +737,12 @@ class UserPinControl():
             displayRemainingTime = 0
 
         # Do a notification to let the user know how long they have left today
+        summaryUserName = "%s:    %s" % (__addon__.getLocalizedString(32035), usersName)
         summaryLimit = "%s:    %d" % (__addon__.getLocalizedString(32033), viewingLimit)
         summaryLimitRemaining = "%s:    %d" % (__addon__.getLocalizedString(32131), displayRemainingTime)
         summaryAccess = "%s:    %s - %s" % (__addon__.getLocalizedString(32132), displayStartTime, displayEndTime)
-        xbmcgui.Dialog().ok(__addon__.getLocalizedString(32001).encode('utf-8'), summaryLimit, summaryLimitRemaining, summaryAccess)
+        fullSummary = "%s\n%s\n%s\n%s" % (summaryUserName, summaryLimit, summaryLimitRemaining, summaryAccess)
+        xbmcgui.Dialog().ok(__addon__.getLocalizedString(32001).encode('utf-8'), fullSummary)
 
     # Check the current user access status
     def check(self):

@@ -269,6 +269,23 @@ class Settings():
         else:
             __addon__.setSetting("pinValueSet", "false")
 
+        # Now we need to tidy up the user limits values
+        numUsers = Settings.getNumberOfLimitedUsers()
+        clearUserPinNum = 5
+        while numUsers < clearUserPinNum:
+            log("SetPin: Clearing user pin %d" % clearUserPinNum)
+            userId = "user%dPin" % clearUserPinNum
+            userNameId = "%sName" % userId
+            Settings.setUserPinValue("", userId)
+
+            # Set the user name to the default language specific one
+            userName = "%s %d" % (__addon__.getLocalizedString(32036), clearUserPinNum)
+            __addon__.setSetting(userNameId, userName)
+            clearUserPinNum = clearUserPinNum - 1
+        # Also clear the unrestricted user if no user limit is being used
+        if numUsers < 1:
+            Settings.setUserPinValue("", "unrestrictedUserPin")
+
     @staticmethod
     def encryptPin(rawValue):
         return hashlib.sha256(rawValue).hexdigest()
@@ -594,3 +611,8 @@ class Settings():
     @staticmethod
     def getWarnExpiringTime():
         return int(float(__addon__.getSetting('warnExpiringTime')))
+
+    @staticmethod
+    def getUserName(userId):
+        userNameTag = "%sName" % userId
+        return __addon__.getSetting(userNameTag)

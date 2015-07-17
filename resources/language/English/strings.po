@@ -160,7 +160,15 @@ msgctxt "#32034"
 msgid "Warn User When Remaining Time Is (Minutes)"
 msgstr ""
 
-#empty strings from id 32035 to 32100
+msgctxt "#32035"
+msgid "Users Name"
+msgstr ""
+
+msgctxt "#32036"
+msgid "User"
+msgstr ""
+
+#empty strings from id 32037 to 32100
 
 msgctxt "#32101"
 msgid "Backspace"
