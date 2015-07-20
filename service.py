@@ -834,7 +834,7 @@ class UserPinControl():
 # Main of the PinSentry Service
 ##################################
 if __name__ == '__main__':
-    log("Starting Pin Sentry Service")
+    log("Starting Pin Sentry Service %s" % __addon__.getAddonInfo('version'))
 
     # Tidy up any old pins and set any warnings when we first start
     Settings.checkPinSettings()
