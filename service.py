@@ -784,22 +784,24 @@ class UserPinControl():
 
             # Check to see if we need to update the record for how long the user has already been viewing
             viewingLimit = Settings.getUserViewingLimit(self.userId)
-            timeUsed = currentTime - self.startedViewing
-            log("UserPinControl: Time used by user is %d" % timeUsed)
+            self.usedViewingLimit = currentTime - self.startedViewing
+            log("UserPinControl: Time used by user is %d" % self.usedViewingLimit)
 
             # Update the settings record for how much this user has viewed so far
-            Settings.setUserViewingUsedTime(self.userId, timeUsed)
+            Settings.setUserViewingUsedTime(self.userId, self.usedViewingLimit)
 
             # Now check to see if the user has exceeded their limit
-            if timeUsed >= viewingLimit:
+            if self.usedViewingLimit >= viewingLimit:
                 self.shutdown(32133)
                 return False
 
             # Check if we need to warn the user that the time is running out
             warningTime = Settings.getWarnExpiringTime()
-            if (not self.warningDisplayed) and ((timeUsed + warningTime) >= viewingLimit):
+            if (not self.warningDisplayed) and ((self.usedViewingLimit + warningTime) >= viewingLimit):
                 self.warningDisplayed = True
-                msg = "%d %s" % (warningTime, __addon__.getLocalizedString(32134))
+                # Calculate the time left
+                remainingTime = viewingLimit - self.usedViewingLimit
+                msg = "%d %s" % (remainingTime, __addon__.getLocalizedString(32134))
                 xbmcgui.Dialog().notification(__addon__.getLocalizedString(32001).encode('utf-8'), msg, __icon__, 3000, False)
 
         return True
