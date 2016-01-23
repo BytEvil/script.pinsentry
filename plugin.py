@@ -158,6 +158,13 @@ class MenuNavigator():
             except:
                 log("setVideoList: Failed to encode title %s" % title)
 
+            # Make sure the dbid is coded correctly
+            dbid = item['dbid']
+            try:
+                dbid = item['dbid'].encode("utf-8")
+            except:
+                log("setVideoList: Failed to encode dbid %s" % dbid)
+
             # Check if the classification is restricting this item
             isBlockedByClassification = False
             if 'mpaa' in item:
@@ -187,7 +194,7 @@ class MenuNavigator():
                 li.setProperty("ResumeTime", "1")
 
             li.setProperty("Fanart_Image", item['fanart'])
-            url = self._build_url({'mode': 'setsecurity', 'level': item['securityLevel'], 'type': target, 'title': title, 'id': item['dbid'], 'classificationBlocked': str(isBlockedByClassification)})
+            url = self._build_url({'mode': 'setsecurity', 'level': item['securityLevel'], 'type': target, 'title': title, 'id': dbid, 'classificationBlocked': str(isBlockedByClassification)})
             xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=False)
 
         xbmcplugin.endOfDirectory(self.addon_handle)

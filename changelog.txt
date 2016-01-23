@@ -1,3 +1,6 @@
+v1.1.1
+- Fix character encoding issue for file source section
+
 v1.1.0 (2015-07-23)
 - Add feature to restrict a given user/pin to set times and durations
 
