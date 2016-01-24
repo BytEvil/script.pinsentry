@@ -156,14 +156,14 @@ class MenuNavigator():
             try:
                 title = item['title'].encode("utf-8")
             except:
-                log("setVideoList: Failed to encode title %s" % title)
+                pass
 
             # Make sure the dbid is coded correctly
             dbid = item['dbid']
             try:
                 dbid = item['dbid'].encode("utf-8")
             except:
-                log("setVideoList: Failed to encode dbid %s" % dbid)
+                pass
 
             # Check if the classification is restricting this item
             isBlockedByClassification = False
