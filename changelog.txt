@@ -1,4 +1,4 @@
-v1.2.0
+v1.2.0 (2016-01-27)
 - Fix character encoding issue for file source section
 - Add option to block system settings with a pin
 
