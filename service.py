@@ -124,7 +124,7 @@ class PinSentry():
         # Remaining option is to not show any error
 
 
-# Class to detect shen something in the system has changed
+# Class to detect when something in the system has changed
 class PinSentryMonitor(xbmc.Monitor):
     def onSettingsChanged(self):
         log("PinSentryMonitor: Notification of settings change received")
