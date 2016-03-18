@@ -168,7 +168,11 @@ msgctxt "#32036"
 msgid "User"
 msgstr ""
 
-#empty strings from id 32037 to 32100
+msgctxt "#32037"
+msgid "Prompt For Pin On Startup"
+msgstr ""
+
+#empty strings from id 32038 to 32100
 
 msgctxt "#32101"
 msgid "Backspace"

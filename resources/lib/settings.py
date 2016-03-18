@@ -551,6 +551,10 @@ class Settings():
         return __addon__.getSetting("highlightClassificationUnprotectedVideos") == 'true'
 
     @staticmethod
+    def isPromptForPinOnStartup():
+        return __addon__.getSetting("promptForPinOnStartup") == 'true'
+
+    @staticmethod
     def getNumberOfLevels():
         return int(__addon__.getSetting("numberOfLevels")) + 1
 

@@ -13,6 +13,7 @@
 	<extension point="xbmc.python.script" library="default.py">
 		<provides>executable</provides>
 	</extension>
+	<extension point="xbmc.ui.screensaver" library="screensaver.py"/>
 	<extension point="xbmc.addon.metadata">
 		<summary lang="bg">Защитава съдържанието на Kodi с PIN код</summary>
 		<summary lang="de">Kodi-Inhalt mit einem PIN-Code sichern</summary>
