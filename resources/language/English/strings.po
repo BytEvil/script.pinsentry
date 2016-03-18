@@ -364,7 +364,11 @@ msgctxt "#32212"
 msgid "Remove Classification Restriction"
 msgstr ""
 
-#empty strings from id 32213 to 32300
+msgctxt "#32213"
+msgid "Force Pin Entry"
+msgstr ""
+
+#empty strings from id 32214 to 32300
 
 msgctxt "#32301"
 msgid "UK"
