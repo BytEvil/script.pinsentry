@@ -46,19 +46,6 @@ class NumberPad(xbmcgui.WindowXMLDialog):
             # continue as they will just do nothing
             log("NumberPad: Failed to disable next and previous buttons")
 
-        # Replace Done and Backspace buttons labels
-        try:
-            backspaceButton = self.getControl(NumberPad.BUTTON_BACKSPACE)
-            backspaceButton.setLabel(ADDON.getLocalizedString(32101).encode('utf-8'))
-        except:
-            log("NumberPad: Failed to update text for backspace button")
-
-        try:
-            doneButton = self.getControl(NumberPad.BUTTON_DONE)
-            doneButton.setLabel(ADDON.getLocalizedString(32102).encode('utf-8'))
-        except:
-            log("NumberPad: Failed to update text for done button")
-
         # Make sure all the numbers are set correctly, some times the mapping
         # to the string class do not work
         for i in range(0, 10):
