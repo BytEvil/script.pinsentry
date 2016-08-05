@@ -10,6 +10,7 @@ from resources.lib.settings import Settings
 from resources.lib.numberpad import NumberPad
 from resources.lib.database import PinSentryDB
 from resources.lib.background import Background
+from resources.lib.mpaaLookup import MpaaLookup
 
 ADDON = xbmcaddon.Addon(id='script.pinsentry')
 ICON = ADDON.getAddonInfo('icon')
@@ -150,8 +151,23 @@ class PinSentryPlayer(xbmc.Player):
         if not PinSentry.isPinSentryEnabled():
             return
 
+        # Get the path of the file being played
+        filePath = xbmc.getInfoLabel("Player.Folderpath")
+        if filePath in [None, ""]:
+            filePath = xbmc.getInfoLabel("Player.Filenameandpath")
+        if filePath in [None, ""]:
+            filePath = xbmc.getInfoLabel("ListItem.FolderPath")
+        if filePath in [None, ""]:
+            filePath = xbmc.getInfoLabel("ListItem.FileNameAndPath")
+        log("PinSentryPlayer: File being played is: %s" % filePath)
+
         isMusicVideo = False
         isTvShow = False
+
+        # Check if this is a pvr file, in which case we set it as TV
+        if filePath.startswith("pvr://"):
+            isTvShow = True
+
         # Get the information for what is currently playing
         # http://kodi.wiki/view/InfoLabels#Video_player
         title = xbmc.getInfoLabel("VideoPlayer.TVShowTitle")
@@ -202,16 +218,6 @@ class PinSentryPlayer(xbmc.Player):
         # Now perform the check that restricts if a file is in a file source
         # that should not be played
         if securityLevel < 1 and Settings.isActiveFileSource() and Settings.isActiveFileSourcePlaying():
-            # Get the path of the file being played
-            filePath = xbmc.getInfoLabel("Player.Folderpath")
-            if filePath in [None, ""]:
-                filePath = xbmc.getInfoLabel("Player.Filenameandpath")
-            if filePath in [None, ""]:
-                filePath = xbmc.getInfoLabel("ListItem.FolderPath")
-            if filePath in [None, ""]:
-                filePath = xbmc.getInfoLabel("ListItem.FileNameAndPath")
-            log("PinSentryPlayer: Checking file path: %s" % filePath)
-
             # Get all the sources that are protected
             pinDB = PinSentryDB()
             securityDetails = pinDB.getAllFileSourcesPathsSecurity()
@@ -228,6 +234,17 @@ class PinSentryPlayer(xbmc.Player):
             cert = xbmc.getInfoLabel("VideoPlayer.mpaa")
             if cert in [None, ""]:
                 cert = xbmc.getInfoLabel("ListItem.Mpaa")
+
+            # If there is no MPAA rating, then perform a lookup to find it using the
+            # title of the program
+            if (title not in [None, ""]) and (cert in [None, ""]):
+                # Get the year if it is set, as that will help
+                year = xbmc.getInfoLabel("VideoPlayer.Year")
+                if year in [None, ""]:
+                    year = xbmc.getInfoLabel("ListItem.Year")
+                mpaaLookup = MpaaLookup()
+                cert = mpaaLookup.getMpaaRatings(title, year)
+                del mpaaLookup
 
             if cert not in [None, ""]:
                 log("PinSentryPlayer: Checking for certification restrictions: %s" % str(cert))
