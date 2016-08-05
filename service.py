@@ -232,12 +232,12 @@ class PinSentryPlayer(xbmc.Player):
         # Now check to see if this item has a certificate restriction
         if securityLevel < 1:
             cert = xbmc.getInfoLabel("VideoPlayer.mpaa")
-            if cert in [None, ""]:
+            if cert in [None, "", "N/A"]:
                 cert = xbmc.getInfoLabel("ListItem.Mpaa")
 
             # If there is no MPAA rating, then perform a lookup to find it using the
             # title of the program
-            if (title not in [None, ""]) and (cert in [None, ""]):
+            if (title not in [None, ""]) and (cert in [None, "", "N/A"]):
                 # Get the year if it is set, as that will help
                 year = xbmc.getInfoLabel("VideoPlayer.Year")
                 if year in [None, ""]:
@@ -253,10 +253,10 @@ class PinSentryPlayer(xbmc.Player):
                 cert = cert.strip().split(':')[-1]
                 cert = cert.strip().split()[-1]
                 pinDB = PinSentryDB()
-                if isTvShow:
+                if isTvShow or filePath.startswith("pvr://"):
                     # Look up the TV Shows Certificate to see if it is restricted
                     securityLevel = pinDB.getTvClassificationSecurityLevel(cert)
-                else:
+                if (securityLevel < 1) and ((not isTvShow) or filePath.startswith("pvr://")):
                     # Look up the Movies Certificate to see if it is restricted
                     securityLevel = pinDB.getMovieClassificationSecurityLevel(cert)
                 del pinDB
