@@ -713,6 +713,52 @@ class NavigationRestrictions():
             # The pin dalog will be automatically re-opened as the window property has not been cleared
 
 
+# Class to detect when using the PVR if the channel changes
+class PvrMonitor():
+    def __init__(self):
+        self.playingPvrFile = None
+
+    def hasPvrChannelChanged(self):
+        # Only need to handle PVR if there is actually a video playing
+        if not Settings.isActiveVideoPlaying():
+            self.playingPvrFile = None
+            return False
+
+        # Get the path of the file being played
+        filePath = xbmc.getInfoLabel("Player.Folderpath")
+        if filePath in [None, ""]:
+            filePath = xbmc.getInfoLabel("Player.Filenameandpath")
+        if filePath in [None, ""]:
+            filePath = xbmc.getInfoLabel("ListItem.FolderPath")
+        if filePath in [None, ""]:
+            filePath = xbmc.getInfoLabel("ListItem.FileNameAndPath")
+        if filePath in [None, ""]:
+            # No file currently playing, skip
+            self.playingPvrFile = None
+            return False
+
+        # Check if this is a pvr file, in which case we set it as TV
+        if filePath.startswith("pvr://"):
+            # The file being played is a PVR file, check if it is different
+            # than the last file we recorded as being played
+            if filePath == self.playingPvrFile:
+                # Same file so nothing to do
+                return False
+
+            # The first playing of a PVR file will be handled correctly by the
+            # Player monitor, it is only the change in channel we are interested in
+            if self.playingPvrFile in [None, ""]:
+                self.playingPvrFile = filePath
+                return False
+
+            # If we reach here then we have a different file being played so we
+            # need to force the check to see if the pin should be displayed
+            self.playingPvrFile = filePath
+            log("PvrMonitor: File being played is: %s" % filePath)
+            return True
+
+        return False
+
 # Class the handle user control
 class UserPinControl():
     def __init__(self):
@@ -936,6 +982,7 @@ if __name__ == '__main__':
     playerMonitor = PinSentryPlayer()
     systemMonitor = PinSentryMonitor()
     navRestrictions = NavigationRestrictions()
+    pvrMonitor = PvrMonitor()
 
     # Check if we need to prompt for the pin when the system starts
     if Settings.isPromptForPinOnStartup():
@@ -973,7 +1020,14 @@ if __name__ == '__main__':
             # Check if the dialog is being forced to display
             navRestrictions.checkForcedDisplay()
 
+            # Check if the PVR channel has changed
+            if pvrMonitor.hasPvrChannelChanged():
+                # Need to force the notification for the player as changing
+                # channel will not do this
+                playerMonitor.onPlayBackStarted()
+
     log("Stopping Pin Sentry Service")
+    del pvrMonitor
     del userCtrl
     del navRestrictions
     del playerMonitor
