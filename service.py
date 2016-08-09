@@ -716,12 +716,23 @@ class NavigationRestrictions():
 # Class to detect when using the PVR if the channel changes
 class PvrMonitor():
     def __init__(self):
-        self.playingPvrFile = None
+        self.lastPvrChannelNumber = None
+        self.lastPlayedTitle = None
 
     def hasPvrChannelChanged(self):
-        # Only need to handle PVR if there is actually a video playing
-        if not Settings.isActiveVideoPlaying():
-            self.playingPvrFile = None
+        # Only need to handle PVR if we are configured to check playing videos
+        if (not Settings.isActiveVideoPlaying()) or (not xbmc.Player().isPlayingVideo()):
+            self.lastPvrChannelNumber = None
+            self.lastPlayedTitle = None
+            return False
+
+        # Get the channel that is currently being played
+        channelNumber = xbmc.getInfoLabel("VideoPlayer.ChannelNumber")
+
+        # If there is no channel, then this is not PVR and there is nothing to do
+        if channelNumber in [None, ""]:
+            self.lastPvrChannelNumber = None
+            self.lastPlayedTitle = None
             return False
 
         # Get the path of the file being played
@@ -729,35 +740,51 @@ class PvrMonitor():
         if filePath in [None, ""]:
             filePath = xbmc.getInfoLabel("Player.Filenameandpath")
         if filePath in [None, ""]:
-            filePath = xbmc.getInfoLabel("ListItem.FolderPath")
-        if filePath in [None, ""]:
-            filePath = xbmc.getInfoLabel("ListItem.FileNameAndPath")
-        if filePath in [None, ""]:
             # No file currently playing, skip
-            self.playingPvrFile = None
+            self.lastPvrChannelNumber = None
+            self.lastPlayedTitle = None
             return False
 
         # Check if this is a pvr file, in which case we set it as TV
-        if filePath.startswith("pvr://"):
-            # The file being played is a PVR file, check if it is different
-            # than the last file we recorded as being played
-            if filePath == self.playingPvrFile:
-                # Same file so nothing to do
-                return False
+        if not filePath.startswith("pvr://"):
+            self.lastPvrChannelNumber = None
+            self.lastPlayedTitle = None
+            return False
 
-            # The first playing of a PVR file will be handled correctly by the
-            # Player monitor, it is only the change in channel we are interested in
-            if self.playingPvrFile in [None, ""]:
-                self.playingPvrFile = filePath
-                return False
+        # At this point we must be playing something using the PVR so get the title
+        title = xbmc.getInfoLabel("VideoPlayer.TVShowTitle")
+        if title in [None, ""]:
+            # Not a TvShow, so check for the Movie Title
+            title = xbmc.getInfoLabel("VideoPlayer.Title")
 
-            # If we reach here then we have a different file being played so we
-            # need to force the check to see if the pin should be displayed
-            self.playingPvrFile = filePath
-            log("PvrMonitor: File being played is: %s" % filePath)
-            return True
+        # Now we want to check if the channel has changed, if this is the first
+        # item played, then we do not want to do anything as that will be picked
+        # up my the normal player notifications
+        if self.lastPvrChannelNumber in [None, ""]:
+            log("PvrMonitor: Channel number selected is %s" % str(channelNumber))
+            self.lastPvrChannelNumber = channelNumber
+            self.lastPlayedTitle = title
+            return False
 
-        return False
+        # If the channel being played is the same as the current channel, then
+        # there is nothing to do unless what is playing on that channel has changed
+        if self.lastPvrChannelNumber == channelNumber:
+            programHasChanged = False
+            # Check if there has been a change in what is being played
+            if (self.lastPlayedTitle not in [None, ""]) and (title not in [None, ""]):
+                if self.lastPlayedTitle != title:
+                    # So we are on the same channel and the program has changed
+                    log("PvrMonitor: Channel remained on %s but program changed" % str(channelNumber))
+                    programHasChanged = True
+            self.lastPlayedTitle = title
+            return programHasChanged
+
+        # If we reach here then we have a different channel being played so we
+        # need to force the check to see if the pin should be displayed
+        log("PvrMonitor: Channel number changed from %s to %s" % (str(self.lastPvrChannelNumber), str(channelNumber)))
+        self.lastPvrChannelNumber = channelNumber
+        return True
+
 
 # Class the handle user control
 class UserPinControl():
