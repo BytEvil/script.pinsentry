@@ -745,7 +745,7 @@ class PvrMonitor():
             self.lastPlayedTitle = None
             return False
 
-        # Check if this is a pvr file, in which case we set it as TV
+        # Check if this is a pvr file
         if not filePath.startswith("pvr://"):
             self.lastPvrChannelNumber = None
             self.lastPlayedTitle = None
@@ -783,6 +783,7 @@ class PvrMonitor():
         # need to force the check to see if the pin should be displayed
         log("PvrMonitor: Channel number changed from %s to %s" % (str(self.lastPvrChannelNumber), str(channelNumber)))
         self.lastPvrChannelNumber = channelNumber
+        self.lastPlayedTitle = title
         return True
 
 
