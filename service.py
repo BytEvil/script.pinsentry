@@ -15,6 +15,9 @@ from resources.lib.mpaaLookup import MpaaLookup
 ADDON = xbmcaddon.Addon(id='script.pinsentry')
 ICON = ADDON.getAddonInfo('icon')
 
+# Global value to highlight when the last time something happened
+lastActivityTime = 0
+
 
 # Class to handle core Pin Sentry behaviour
 class PinSentry():
@@ -94,6 +97,13 @@ class PinSentry():
         else:
             log("PinSentry: Incorrect Pin Value Entered, required level %d entered level %d" % (requiredLevel, pinMatchLevel))
             userHasAccess = False
+
+        # Reset the last activity time as we will later we waiting for a time when
+        # nothing happens to detect Kodi being in sleep, so we want to ensure we
+        # don't think we have been inactive if the user has left the dialog open
+        # for a long time
+        global lastActivityTime
+        lastActivityTime = time.time()
 
         return userHasAccess
 
@@ -1012,13 +1022,25 @@ if __name__ == '__main__':
     navRestrictions = NavigationRestrictions()
     pvrMonitor = PvrMonitor()
 
-    # Check if we need to prompt for the pin when the system starts
-    if Settings.isPromptForPinOnStartup():
-        log("PinSentry: Prompting for pin on startup")
-        xbmcgui.Window(10000).setProperty("PinSentryPrompt", "true")
-
     loopsUntilUserControlCheck = 0
     while (not xbmc.abortRequested):
+        # Check if we need to prompt for the pin when the system starts
+        if Settings.isPromptForPinOnStartup():
+            # There are two types of startup, the first is a genuine startup when
+            # kodi is booted from cold, the second is when kodi is resumed from
+            # a sleep state, if restoring from sleep in memory then the PinSentry
+            # service will be restored from where it was and will not be a clean
+            # start, so we keep track of the current time and then, if too long has
+            # passed since the last time we updated the timer, we know the system
+            # has been in a sleep mode for a while
+            currentTime = int(time.time())
+            # Add on 10 seconds to detect sleep
+            if (lastActivityTime == 0) or ((lastActivityTime + 10) < currentTime):
+                log("PinSentry: Prompting for pin on startup")
+                xbmcgui.Window(10000).setProperty("PinSentryPrompt", "true")
+            # Make sure the last loop is recorded
+            lastActivityTime = currentTime
+
         # No need to perform the user control check every fraction of a second
         # about every minute will be OK
         if loopsUntilUserControlCheck < 1:

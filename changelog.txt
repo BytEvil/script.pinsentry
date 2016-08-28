@@ -1,3 +1,6 @@
+v2.2.2 (2016-08-28)
+- Support prompting for a pin when returning from resume
+
 v2.2.1 (2016-08-19)
 - Moved to robwebset repository
 
