@@ -1014,8 +1014,7 @@ if __name__ == '__main__':
 
     # Check to see if we need to restrict based on a given user to ensure they
     # are allowed to use the system
-    userCtrl = UserPinControl()
-    userCtrl.startupCheck()
+    userCtrl = None
 
     playerMonitor = PinSentryPlayer()
     systemMonitor = PinSentryMonitor()
@@ -1024,22 +1023,29 @@ if __name__ == '__main__':
 
     loopsUntilUserControlCheck = 0
     while (not xbmc.abortRequested):
-        # Check if we need to prompt for the pin when the system starts
-        if Settings.isPromptForPinOnStartup():
-            # There are two types of startup, the first is a genuine startup when
-            # kodi is booted from cold, the second is when kodi is resumed from
-            # a sleep state, if restoring from sleep in memory then the PinSentry
-            # service will be restored from where it was and will not be a clean
-            # start, so we keep track of the current time and then, if too long has
-            # passed since the last time we updated the timer, we know the system
-            # has been in a sleep mode for a while
-            currentTime = int(time.time())
-            # Add on 10 seconds to detect sleep
-            if (lastActivityTime == 0) or ((lastActivityTime + 10) < currentTime):
+        # There are two types of startup, the first is a genuine startup when
+        # kodi is booted from cold, the second is when kodi is resumed from
+        # a sleep state, if restoring from sleep in memory then the PinSentry
+        # service will be restored from where it was and will not be a clean
+        # start, so we keep track of the current time and then, if too long has
+        # passed since the last time we updated the timer, we know the system
+        # has been in a sleep mode for a while
+        currentTime = int(time.time())
+        # Add on 10 seconds to detect sleep
+        if (lastActivityTime == 0) or ((lastActivityTime + 10) < currentTime):
+            # Check if we need to prompt for the pin when the system starts
+            if Settings.isPromptForPinOnStartup():
                 log("PinSentry: Prompting for pin on startup")
                 xbmcgui.Window(10000).setProperty("PinSentryPrompt", "true")
-            # Make sure the last loop is recorded
-            lastActivityTime = currentTime
+            # Also need to reset the User pin control that restricts the amount of
+            # time that the user is allowed to view kodi for
+            if userCtrl not in [None, ""]:
+                del userCtrl
+            userCtrl = UserPinControl()
+            userCtrl.startupCheck()
+
+        # Make sure the last loop is recorded
+        lastActivityTime = currentTime
 
         # No need to perform the user control check every fraction of a second
         # about every minute will be OK
